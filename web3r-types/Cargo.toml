@@ -1,0 +1,39 @@
+[package]
+name = "web3r-types"
+version = "0.1.0"
+description = "Web3 types in Rust."
+authors = ["Sky Mavis Engineering <engineering@skymavis.com>"]
+edition = "2018"
+license = "MIT"
+homepage = "https://github.com/skymavis/web3r"
+repository = "https://github.com/skymavis/web3r"
+categories = ["data-structures"]
+keywords = ["web3", "api", "ethereum"]
+include = ["src/**/*", "LICENSE", "README.md"]
+readme = "README.md"
+
+[package.metadata.docs.rs]
+all-features = true
+
+[badges]
+travis-ci = { repository = "skymavis/web3r", branch = "master" }
+coveralls = { repository = "skymavis/web3r", branch = "master" }
+is-it-maintained-issue-resolution = { repository = "skymavis/web3r" }
+is-it-maintained-open-issues = { repository = "skymavis/web3r" }
+maintenance = { status = "actively-developed" }
+
+[lib]
+name = "web3r_types"
+path = "src/lib.rs"
+
+[[bin]]
+name = "numeric_impls"
+path = "bin/numeric_impls.rs"
+
+[build-dependencies]
+autocfg = "0.1.7"
+
+[dependencies]
+num-bigint = "0.2.4"
+num-traits = "0.2.10"
+serde = { version = "1.0.104", features = ["derive"] }
