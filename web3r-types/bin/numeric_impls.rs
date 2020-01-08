@@ -7,7 +7,7 @@ fn main() -> io::Result<()> {
     let path = PathBuf::from(BASE_PATH).join(PATH);
     let mut file = File::create(path).unwrap();
 
-    writeln!(file, "use crate::__impl_num;")?;
+    writeln!(file, "use crate::impl_num;")?;
 
     for size in (8..=256).step_by(8) {
         writeln!(file)?;
@@ -36,7 +36,7 @@ fn main() -> io::Result<()> {
     writeln!(file, "}};")
 }
 
-const PRIMITIVES: [Numeric; 8] = [
+const PRIMITIVES: &'static [Numeric] = &[
     Numeric(Kind::Int, 8),
     Numeric(Kind::Int, 16),
     Numeric(Kind::Int, 32),
@@ -47,8 +47,8 @@ const PRIMITIVES: [Numeric; 8] = [
     Numeric(Kind::Uint, 64),
 ];
 
-const PRIMITIVES_128: [Numeric; 2] = [Numeric(Kind::Int, 128), Numeric(Kind::Uint, 128)];
-const ORDERINGS: [Ordering; 3] = [Ordering::Greater, Ordering::Equal, Ordering::Less];
+const PRIMITIVES_128: &'static [Numeric] = &[Numeric(Kind::Int, 128), Numeric(Kind::Uint, 128)];
+const ORDERINGS: &'static [Ordering] = &[Ordering::Greater, Ordering::Equal, Ordering::Less];
 
 #[derive(PartialEq)]
 enum Kind {
@@ -107,7 +107,7 @@ impl Numeric {
     }
 
     pub fn r#impl(&self, writer: &mut impl io::Write) -> io::Result<()> {
-        writeln!(writer, "__impl_num! {{")?;
+        writeln!(writer, "impl_num! {{")?;
         writeln!(writer, "    {}{};", self.0.ty(), self.1)?;
         writeln!(writer, "    {}, size = {};", self.0.directive(), self.1 / 8)?;
 
@@ -127,7 +127,7 @@ impl Numeric {
     }
 
     pub fn impl_128(&self, writer: &mut impl io::Write) -> io::Result<()> {
-        write!(writer, "    __impl_num!({}{}", self.0.ty(), self.1)?;
+        write!(writer, "    impl_num!({}{}", self.0.ty(), self.1)?;
 
         for ord in ORDERINGS.iter() {
             let primitives = self.query_types(*ord, PRIMITIVES_128.iter());

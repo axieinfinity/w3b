@@ -1,51 +1,50 @@
-#[doc(hidden)]
 #[macro_export]
-macro_rules! __impl_num {
+macro_rules! impl_num {
     ($num:ident; @int, size = $n_bytes:literal $($tail:tt)*) => {
-        __impl_num!(@common $num, $n_bytes);
-        __impl_num!(@int $num);
-        __impl_num!($num $($tail)*);
+        impl_num!(@common $num, $n_bytes);
+        impl_num!(@int $num);
+        impl_num!($num $($tail)*);
     };
 
     ($num:ident; @uint, size = $n_bytes:literal $($tail:tt)*) => {
-        __impl_num!(@common $num, $n_bytes);
-        __impl_num!(@uint $num);
-        __impl_num!($num $($tail)*);
+        impl_num!(@common $num, $n_bytes);
+        impl_num!(@uint $num);
+        impl_num!($num $($tail)*);
     };
 
     ($num:ident; @gt $($primitive:ty),*; $($tail:tt)*) => {
-        __impl_num!($num; @gt $($primitive),*);
-        __impl_num!($num; $($tail)*);
+        impl_num!($num; @gt $($primitive),*);
+        impl_num!($num; $($tail)*);
     };
 
     ($num:ident; @gt $($primitive:ty),*) => {
         $(
-            __impl_num!(@impl TryFrom<$num> for $primitive);
-            __impl_num!(@impl From<$primitive> for $num);
+            impl_num!(@impl TryFrom<$num> for $primitive);
+            impl_num!(@impl From<$primitive> for $num);
         )*
     };
 
     ($num:ident; @eq $($primitive:ty),*; $($tail:tt)*) => {
-        __impl_num!($num; @eq $($primitive),*);
-        __impl_num!($num; $($tail)*);
+        impl_num!($num; @eq $($primitive),*);
+        impl_num!($num; $($tail)*);
     };
 
     ($num:ident; @eq $($primitive:ty),*) => {
         $(
-            __impl_num!(@impl From<$num> for $primitive);
-            __impl_num!(@impl From<$primitive> for $num);
+            impl_num!(@impl From<$num> for $primitive);
+            impl_num!(@impl From<$primitive> for $num);
         )*
     };
 
     ($num:ident; @lt $($primitive:ty),*; $($tail:tt)*) => {
-        __impl_num!($num; @lt $($primitive),*);
-        __impl_num!($num; $($tail)*);
+        impl_num!($num; @lt $($primitive),*);
+        impl_num!($num; $($tail)*);
     };
 
     ($num:ident; @lt $($primitive:ty),*) => {
         $(
-            __impl_num!(@impl From<$num> for $primitive);
-            __impl_num!(@impl TryFrom<$primitive> for $num);
+            impl_num!(@impl From<$num> for $primitive);
+            impl_num!(@impl TryFrom<$primitive> for $num);
         )*
     };
 
@@ -58,7 +57,7 @@ macro_rules! __impl_num {
             pub const NUM_BYTES: usize = $n_bytes;
 
             #[inline]
-            pub fn with_repr(repr: [u8; Self::NUM_BYTES]) -> Self {
+            pub fn new(repr: [u8; Self::NUM_BYTES]) -> Self {
                 Self(repr)
             }
 
@@ -73,26 +72,38 @@ macro_rules! __impl_num {
             }
         }
 
-        impl From<$num> for ::num_bigint::BigInt {
+        impl From<$num> for $crate::num_bigint::BigInt {
             #[inline]
             fn from(value: $num) -> Self {
-                Self::from_bytes_be(::num_bigint::Sign::Plus, value.bytes())
+                Self::from_bytes_be($crate::num_bigint::Sign::Plus, value.bytes())
             }
         }
 
-        impl From<$num> for ::num_bigint::BigUint {
+        impl From<$num> for $crate::num_bigint::BigUint {
             #[inline]
             fn from(value: $num) -> Self {
                 Self::from_bytes_be(value.bytes())
             }
         }
+
+        impl $crate::serde::Serialize for $num {
+            fn serialize<S: $crate::serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+                $crate::internal::ser::serialize_numeric(&self.0, serializer)
+            }
+        }
+
+        impl<'de> $crate::serde::Deserialize<'de> for $num {
+            fn deserialize<D: $crate::serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+                $crate::internal::ser::deserialize_at_most_size(deserializer).map(Self)
+            }
+        }
     };
 
     (@int $num:ident) => {
-        impl ::std::convert::TryFrom<::num_bigint::BigInt> for $num {
-            type Error = $crate::numeric::NumericConversionError;
+        impl ::std::convert::TryFrom<$crate::num_bigint::BigInt> for $num {
+            type Error = $crate::numeric::NumCastError;
 
-            fn try_from(value: ::num_bigint::BigInt) -> Result<Self, Self::Error> {
+            fn try_from(value: $crate::num_bigint::BigInt) -> Result<Self, Self::Error> {
                 let bytes = value.to_signed_bytes_be();
 
                 if bytes.len() <= Self::NUM_BYTES {
@@ -105,20 +116,20 @@ macro_rules! __impl_num {
             }
         }
 
-        impl ::std::convert::TryFrom<::num_bigint::BigUint> for $num {
-            type Error = <Self as ::std::convert::TryFrom<::num_bigint::BigInt>>::Error;
+        impl ::std::convert::TryFrom<$crate::num_bigint::BigUint> for $num {
+            type Error = <Self as ::std::convert::TryFrom<$crate::num_bigint::BigInt>>::Error;
 
-            fn try_from(value: ::num_bigint::BigUint) -> Result<Self, Self::Error> {
-                <Self as ::std::convert::TryFrom<::num_bigint::BigInt>>::try_from(value.into())
+            fn try_from(value: $crate::num_bigint::BigUint) -> Result<Self, Self::Error> {
+                <Self as ::std::convert::TryFrom<$crate::num_bigint::BigInt>>::try_from(value.into())
             }
         }
     };
 
     (@uint $num:ident) => {
-        impl ::std::convert::TryFrom<::num_bigint::BigUint> for $num {
-            type Error = $crate::numeric::NumericConversionError;
+        impl ::std::convert::TryFrom<$crate::num_bigint::BigUint> for $num {
+            type Error = $crate::numeric::NumCastError;
 
-            fn try_from(value: ::num_bigint::BigUint) -> Result<Self, Self::Error> {
+            fn try_from(value: $crate::num_bigint::BigUint) -> Result<Self, Self::Error> {
                 let bytes = value.to_bytes_be();
 
                 if bytes.len() <= Self::NUM_BYTES {
@@ -131,12 +142,12 @@ macro_rules! __impl_num {
             }
         }
 
-        impl ::std::convert::TryFrom<::num_bigint::BigInt> for $num {
-            type Error = <Self as ::std::convert::TryFrom<::num_bigint::BigUint>>::Error;
+        impl ::std::convert::TryFrom<$crate::num_bigint::BigInt> for $num {
+            type Error = <Self as ::std::convert::TryFrom<$crate::num_bigint::BigUint>>::Error;
 
-            fn try_from(value: ::num_bigint::BigInt) -> Result<Self, Self::Error> {
+            fn try_from(value: $crate::num_bigint::BigInt) -> Result<Self, Self::Error> {
                 match value.to_biguint() {
-                    Some(value) => <Self as ::std::convert::TryFrom<::num_bigint::BigUint>>::try_from(value),
+                    Some(value) => <Self as ::std::convert::TryFrom<$crate::num_bigint::BigUint>>::try_from(value),
                     None => Err(Self::Error::new(value, stringify!($num))),
                 }
             }
@@ -147,7 +158,7 @@ macro_rules! __impl_num {
         impl From<$num> for $primitive {
             #[inline]
             fn from(value: $num) -> Self {
-                <Self as ::num_traits::NumCast>::from(::num_bigint::BigInt::from(value)).unwrap()
+                <Self as $crate::num_traits::NumCast>::from($crate::num_bigint::BigInt::from(value)).unwrap()
             }
         }
     };
@@ -156,19 +167,19 @@ macro_rules! __impl_num {
         impl From<$primitive> for $num {
             #[inline]
             fn from(value: $primitive) -> Self {
-                <Self as ::std::convert::TryFrom<::num_bigint::BigInt>>::try_from(value.into()).unwrap()
+                <Self as ::std::convert::TryFrom<$crate::num_bigint::BigInt>>::try_from(value.into()).unwrap()
             }
         }
     };
 
     (@impl TryFrom<$num:ident> for $primitive:ty) => {
         impl ::std::convert::TryFrom<$num> for $primitive {
-            type Error = $crate::numeric::NumericConversionError;
+            type Error = $crate::numeric::NumCastError;
 
             fn try_from(value: $num) -> Result<Self, Self::Error> {
-                let value = ::num_bigint::BigInt::from(value);
+                let value = $crate::num_bigint::BigInt::from(value);
 
-                <Self as ::num_traits::NumCast>::from(value.clone())
+                <Self as $crate::num_traits::NumCast>::from(value.clone())
                     .ok_or(Self::Error::new(value, stringify!($primitive)))
             }
         }
@@ -176,11 +187,11 @@ macro_rules! __impl_num {
 
     (@impl TryFrom<$primitive:ty> for $num:ident) => {
         impl ::std::convert::TryFrom<$primitive> for $num {
-            type Error = <Self as ::std::convert::TryFrom<::num_bigint::BigInt>>::Error;
+            type Error = <Self as ::std::convert::TryFrom<$crate::num_bigint::BigInt>>::Error;
 
             #[inline]
             fn try_from(value: $primitive) -> Result<Self, Self::Error> {
-                <Self as ::std::convert::TryFrom<::num_bigint::BigInt>>::try_from(value.into())
+                <Self as ::std::convert::TryFrom<$crate::num_bigint::BigInt>>::try_from(value.into())
             }
         }
     };

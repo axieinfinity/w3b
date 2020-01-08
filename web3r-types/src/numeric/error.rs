@@ -2,12 +2,12 @@ use std::{error::Error, fmt};
 
 use num_bigint::BigInt;
 
-pub struct NumericConversionError {
+pub struct NumCastError {
     value: BigInt,
     into_type: String,
 }
 
-impl NumericConversionError {
+impl NumCastError {
     #[inline]
     pub fn new(value: BigInt, into_type: impl Into<String>) -> Self {
         Self {
@@ -17,21 +17,21 @@ impl NumericConversionError {
     }
 }
 
-impl fmt::Debug for NumericConversionError {
+impl fmt::Debug for NumCastError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "cannot convert {} to {}",
+            "cannot cast {} to {}",
             self.value.to_str_radix(10),
             self.into_type
         )
     }
 }
 
-impl fmt::Display for NumericConversionError {
+impl fmt::Display for NumCastError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{:?}", self)
     }
 }
 
-impl Error for NumericConversionError {}
+impl Error for NumCastError {}
