@@ -10,9 +10,11 @@ pub use num_traits;
 pub use serde;
 
 mod address;
+mod bytes;
 #[doc(hidden)]
 pub mod internal;
 mod numeric;
 
 pub use address::*;
+pub use bytes::*;
 pub use numeric::*;
