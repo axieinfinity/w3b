@@ -135,7 +135,7 @@ macro_rules! impl_num {
 
     (@uint $num:ident) => {
         impl ::std::convert::TryFrom<$crate::num_bigint::BigUint> for $num {
-            type Error = $crate::numeric::NumCastError;
+            type Error = $crate::NumCastError;
 
             fn try_from(value: $crate::num_bigint::BigUint) -> Result<Self, Self::Error> {
                 let bytes = value.to_bytes_be();
@@ -182,7 +182,7 @@ macro_rules! impl_num {
 
     (@impl TryFrom<$num:ident> for $primitive:ty) => {
         impl ::std::convert::TryFrom<$num> for $primitive {
-            type Error = $crate::numeric::NumCastError;
+            type Error = $crate::NumCastError;
 
             fn try_from(value: $num) -> Result<Self, Self::Error> {
                 let value = $crate::num_bigint::BigInt::from(value);

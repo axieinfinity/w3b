@@ -20,7 +20,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "cannot convert 256 to Uint8")]
+    #[should_panic(expected = "cannot cast 256 to Uint8")]
     fn downcast_overflow() {
         let _uint8: Uint8 = BigUint::from(255_u16).try_into().unwrap();
         let _uint8: Uint8 = BigUint::from(256_u16).try_into().unwrap();
