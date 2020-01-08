@@ -16,7 +16,7 @@ mod tests {
     #[test]
     fn convenient_upcast() {
         let uint16: Uint16 = 255u8.into();
-        assert_eq!(uint16.bytes(), &[0, 255]);
+        assert_eq!(uint16.as_bytes(), &[0, 255]);
     }
 
     #[test]

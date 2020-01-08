@@ -51,6 +51,7 @@ macro_rules! impl_num {
     ($num:ident $(;)?) => {};
 
     (@common $num:ident, $n_bytes:literal) => {
+        #[derive(PartialEq, Eq, Debug)]
         pub struct $num([u8; Self::NUM_BYTES]);
 
         impl $num {
@@ -67,27 +68,61 @@ macro_rules! impl_num {
             }
 
             #[inline]
-            pub fn repr(&self) -> &[u8; Self::NUM_BYTES] {
+            pub fn from_hex(hex: impl AsRef<str>) -> Result<Self, $crate::HexError> {
+                $crate::internal::hex::from_hex(
+                    hex,
+                    &$crate::internal::hex::ExpectedHexLen::AtMost((Self::NUM_BYTES << 1) + 2),
+                )
+                .map(|bytes| Self::from_bytes(bytes.as_slice()).unwrap())
+            }
+
+            #[inline]
+            pub fn as_repr(&self) -> &[u8; Self::NUM_BYTES] {
                 &self.0
             }
 
             #[inline]
-            pub fn bytes(&self) -> &[u8] {
-                self.repr().as_ref()
+            pub fn as_bytes(&self) -> &[u8] {
+                self.as_repr().as_ref()
+            }
+
+            #[inline]
+            pub fn to_hex(&self) -> String {
+                $crate::internal::hex::to_hex(self.as_bytes(), true)
+            }
+        }
+
+        impl ::std::fmt::LowerHex for $num {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+                if f.alternate() {
+                    write!(f, "0x")?;
+                }
+
+                write!(f, "{}", &self.to_hex()[2..])
+            }
+        }
+
+        impl ::std::fmt::UpperHex for $num {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+                if f.alternate() {
+                    write!(f, "0x")?;
+                }
+
+                write!(f, "{}", &self.to_hex().to_uppercase()[2..])
             }
         }
 
         impl From<$num> for $crate::num_bigint::BigInt {
             #[inline]
             fn from(value: $num) -> Self {
-                Self::from_bytes_be($crate::num_bigint::Sign::Plus, value.bytes())
+                Self::from_bytes_be($crate::num_bigint::Sign::Plus, value.as_bytes())
             }
         }
 
         impl From<$num> for $crate::num_bigint::BigUint {
             #[inline]
             fn from(value: $num) -> Self {
-                Self::from_bytes_be(value.bytes())
+                Self::from_bytes_be(value.as_bytes())
             }
         }
 

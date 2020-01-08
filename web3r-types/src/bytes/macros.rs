@@ -1,6 +1,7 @@
 #[macro_export]
 macro_rules! impl_bytes {
     ($bytes:ident; size = $n_bytes:literal) => {
+        #[derive(PartialEq, Eq, Debug)]
         pub struct $bytes([u8; Self::NUM_BYTES]);
 
         impl $bytes {
@@ -12,18 +13,55 @@ macro_rules! impl_bytes {
             }
 
             #[inline]
-            pub fn from_bytes(bytes: &[u8]) -> Result<Self, ::std::array::TryFromSliceError> {
-                <[u8; Self::NUM_BYTES] as ::std::convert::TryFrom<&[u8]>>::try_from(bytes).map(Self)
+            pub fn from_bytes(
+                bytes: impl AsRef<[u8]>,
+            ) -> Result<Self, ::std::array::TryFromSliceError> {
+                <[u8; Self::NUM_BYTES] as ::std::convert::TryFrom<&[u8]>>::try_from(bytes.as_ref())
+                    .map(Self)
             }
 
             #[inline]
-            pub fn repr(&self) -> &[u8; Self::NUM_BYTES] {
+            pub fn from_hex(hex: impl AsRef<str>) -> Result<Self, $crate::HexError> {
+                $crate::internal::hex::from_hex(
+                    hex,
+                    &$crate::internal::hex::ExpectedHexLen::Exact((Self::NUM_BYTES << 1) + 2),
+                )
+                .map(|bytes| Self::from_bytes(bytes.as_slice()).unwrap())
+            }
+
+            #[inline]
+            pub fn as_repr(&self) -> &[u8; Self::NUM_BYTES] {
                 &self.0
             }
 
             #[inline]
-            pub fn bytes(&self) -> &[u8] {
-                self.repr().as_ref()
+            pub fn as_bytes(&self) -> &[u8] {
+                self.as_repr().as_ref()
+            }
+
+            #[inline]
+            pub fn to_hex(&self) -> String {
+                $crate::internal::hex::to_hex(self.as_bytes(), false)
+            }
+        }
+
+        impl ::std::fmt::LowerHex for $bytes {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+                if f.alternate() {
+                    write!(f, "0x")?;
+                }
+
+                write!(f, "{}", &self.to_hex()[2..])
+            }
+        }
+
+        impl ::std::fmt::UpperHex for $bytes {
+            fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
+                if f.alternate() {
+                    write!(f, "0x")?;
+                }
+
+                write!(f, "{}", &self.to_hex().to_uppercase()[2..])
             }
         }
 

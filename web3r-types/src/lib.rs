@@ -17,4 +17,5 @@ mod numeric;
 
 pub use address::*;
 pub use bytes::*;
+pub use internal::hex::HexError;
 pub use numeric::*;
