@@ -62,6 +62,11 @@ macro_rules! impl_num {
             }
 
             #[inline]
+            pub fn from_bytes(bytes: &[u8]) -> Result<Self, ::std::array::TryFromSliceError> {
+                <[u8; Self::NUM_BYTES] as ::std::convert::TryFrom<&[u8]>>::try_from(bytes).map(Self)
+            }
+
+            #[inline]
             pub fn repr(&self) -> &[u8; Self::NUM_BYTES] {
                 &self.0
             }
