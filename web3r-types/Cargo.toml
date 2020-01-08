@@ -27,6 +27,10 @@ name = "web3r_types"
 path = "src/lib.rs"
 
 [[bin]]
+name = "bytes_impls"
+path = "bin/bytes_impls.rs"
+
+[[bin]]
 name = "numeric_impls"
 path = "bin/numeric_impls.rs"
 
