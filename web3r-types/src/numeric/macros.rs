@@ -92,12 +92,14 @@ macro_rules! impl_num {
         }
 
         impl $crate::serde::Serialize for $num {
+            #[inline]
             fn serialize<S: $crate::serde::Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
                 $crate::internal::ser::serialize_numeric(&self.0, serializer)
             }
         }
 
         impl<'de> $crate::serde::Deserialize<'de> for $num {
+            #[inline]
             fn deserialize<D: $crate::serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
                 $crate::internal::ser::deserialize_at_most_size(deserializer).map(Self)
             }
@@ -124,6 +126,7 @@ macro_rules! impl_num {
         impl ::std::convert::TryFrom<$crate::num_bigint::BigUint> for $num {
             type Error = <Self as ::std::convert::TryFrom<$crate::num_bigint::BigInt>>::Error;
 
+            #[inline]
             fn try_from(value: $crate::num_bigint::BigUint) -> Result<Self, Self::Error> {
                 <Self as ::std::convert::TryFrom<$crate::num_bigint::BigInt>>::try_from(value.into())
             }

@@ -4,6 +4,7 @@ use serde::{de, Deserializer, Serializer};
 
 use super::hex;
 
+#[inline]
 pub fn serialize_fixed_bytes<S: Serializer>(
     bytes: &[u8],
     serializer: S,
@@ -11,6 +12,7 @@ pub fn serialize_fixed_bytes<S: Serializer>(
     serializer.serialize_str(&hex::to_hex(bytes, false))
 }
 
+#[inline]
 pub fn serialize_numeric<S: Serializer>(bytes: &[u8], serializer: S) -> Result<S::Ok, S::Error> {
     serializer.serialize_str(&hex::to_hex(bytes, true))
 }
@@ -43,6 +45,7 @@ struct Visitor(ExpectedSize);
 impl<'de> de::Visitor<'de> for Visitor {
     type Value = Vec<u8>;
 
+    #[inline]
     fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "a 0x-prefixed hexadecimal string with {}", self.0)
     }
@@ -58,6 +61,7 @@ impl<'de> de::Visitor<'de> for Visitor {
     }
 }
 
+#[inline]
 pub fn deserialize_exact_size<'de, D, const NUM_BYTES: usize>(
     deserializer: D,
 ) -> Result<[u8; NUM_BYTES], D::Error>
@@ -70,6 +74,7 @@ where
         .map(|bytes| bytes.as_slice().try_into().unwrap())
 }
 
+#[inline]
 pub fn deserialize_at_most_size<'de, D, const NUM_BYTES: usize>(
     deserializer: D,
 ) -> Result<[u8; NUM_BYTES], D::Error>

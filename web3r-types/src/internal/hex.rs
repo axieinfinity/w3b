@@ -71,6 +71,7 @@ impl fmt::Debug for HexError {
 }
 
 impl fmt::Display for HexError {
+    #[inline]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{:?}", self)
     }
