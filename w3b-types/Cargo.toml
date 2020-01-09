@@ -5,8 +5,8 @@ description = "Web3 types in Rust."
 authors = ["Sky Mavis Engineering <engineering@skymavis.com>"]
 edition = "2018"
 license = "MIT"
-homepage = "https://github.com/skymavis/web3r"
-repository = "https://github.com/skymavis/web3r"
+homepage = "https://github.com/skymavis/w3b"
+repository = "https://github.com/skymavis/w3b"
 categories = ["data-structures"]
 keywords = ["web3", "api", "ethereum"]
 include = ["src/**/*", "LICENSE", "README.md"]
@@ -16,14 +16,14 @@ readme = "README.md"
 all-features = true
 
 [badges]
-travis-ci = { repository = "skymavis/web3r", branch = "master" }
-coveralls = { repository = "skymavis/web3r", branch = "master" }
-is-it-maintained-issue-resolution = { repository = "skymavis/web3r" }
-is-it-maintained-open-issues = { repository = "skymavis/web3r" }
+travis-ci = { repository = "skymavis/w3b", branch = "master" }
+coveralls = { repository = "skymavis/w3b", branch = "master" }
+is-it-maintained-issue-resolution = { repository = "skymavis/w3b" }
+is-it-maintained-open-issues = { repository = "skymavis/w3b" }
 maintenance = { status = "actively-developed" }
 
 [lib]
-name = "web3r_types"
+name = "w3b_types"
 path = "src/lib.rs"
 
 [[bin]]

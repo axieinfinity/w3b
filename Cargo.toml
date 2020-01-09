@@ -1,5 +1,5 @@
 [workspace]
 members = [
-    "web3r",
-    "web3r-types",
+    "w3b",
+    "w3b-types",
 ]

@@ -5,7 +5,7 @@ const HEX_CHARS: &'static [u8] = b"0123456789abcdef";
 /// Converts a slice of bytes to a hexadecimal string.
 ///
 /// ```rust
-/// use web3r_types::internal::hex::to_hex;
+/// use w3b_types::internal::hex::to_hex;
 ///
 /// assert_eq!(&to_hex(&[0xf, 0xff, 0xf], true), "0xfff0f");
 /// assert_eq!(&to_hex(&[0, 0, 0x37], true), "0x37");
@@ -134,7 +134,7 @@ impl fmt::Display for ExpectedHexLen {
 /// Converts a hexadecimal string to a `Vec` of bytes.
 ///
 /// ```rust
-/// use web3r_types::internal::hex::{from_hex, HexError};
+/// use w3b_types::internal::hex::{from_hex, HexError};
 ///
 /// assert_eq!(from_hex("0xfff0f", None).unwrap(), vec![0xf, 0xff, 0xf]);
 /// assert_eq!(from_hex("0x37", None).unwrap(), vec![0x37]);
