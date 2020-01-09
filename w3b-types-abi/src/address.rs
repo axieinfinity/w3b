@@ -68,7 +68,7 @@ mod tests {
 
         assert_eq!(
             format!("{:#X}", Address([0xdd; 20])),
-            format!("0x{}", "D".repeat(40))
+            format!("0x{}", "D".repeat(40)),
         );
     }
 }

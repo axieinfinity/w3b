@@ -17,24 +17,37 @@ pub fn serialize_numeric<S: Serializer>(bytes: &[u8], serializer: S) -> Result<S
     serializer.serialize_str(&hex::to_hex(bytes, true))
 }
 
-struct Visitor(ExpectedHexLen);
+struct Visitor(Option<ExpectedHexLen>);
 
 impl<'de> de::Visitor<'de> for Visitor {
     type Value = Vec<u8>;
 
     #[inline]
-    fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "a 0x-prefixed hexadecimal string with {}", self.0)
+    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        match self.0.as_ref() {
+            Some(expected_len) => write!(
+                formatter,
+                "a 0x-prefixed hexadecimal string with {}",
+                expected_len,
+            ),
+
+            None => write!(formatter, "a 0x-prefixed hexadecimal string"),
+        }
     }
 
     fn visit_str<E: de::Error>(self, v: &str) -> Result<Self::Value, E> {
-        hex::from_hex(v, &self.0).map_err(|error| match error {
+        hex::from_hex(v, self.0.as_ref()).map_err(|error| match error {
             HexError::MissingPrefix | HexError::InvalidChar { .. } => E::custom(error),
             HexError::IncorrectLen { len, .. } | HexError::LenOverflow { len, .. } => {
                 E::invalid_length(len, &self)
             }
         })
     }
+}
+
+#[inline]
+pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Vec<u8>, D::Error> {
+    deserializer.deserialize_str(Visitor(None))
 }
 
 #[inline]
@@ -46,7 +59,7 @@ where
     [u8; NUM_BYTES]: LengthAtMost32,
 {
     deserializer
-        .deserialize_str(Visitor(ExpectedHexLen::Exact((NUM_BYTES << 1) + 2)))
+        .deserialize_str(Visitor(Some(ExpectedHexLen::Exact((NUM_BYTES << 1) + 2))))
         .map(|bytes| bytes.as_slice().try_into().unwrap())
 }
 
@@ -59,6 +72,6 @@ where
     [u8; NUM_BYTES]: LengthAtMost32,
 {
     deserializer
-        .deserialize_str(Visitor(ExpectedHexLen::AtMost((NUM_BYTES << 1) + 2)))
+        .deserialize_str(Visitor(Some(ExpectedHexLen::AtMost((NUM_BYTES << 1) + 2))))
         .map(|bytes| bytes.as_slice().try_into().unwrap())
 }
