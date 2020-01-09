@@ -21,10 +21,10 @@ macro_rules! impl_bytes {
             }
 
             #[inline]
-            pub fn from_hex(hex: impl AsRef<str>) -> Result<Self, $crate::HexError> {
-                $crate::internal::hex::from_hex(
+            pub fn from_hex(hex: impl AsRef<str>) -> Result<Self, $crate::hex::HexError> {
+                $crate::hex::from_hex(
                     hex,
-                    &$crate::internal::hex::ExpectedHexLen::Exact((Self::NUM_BYTES << 1) + 2),
+                    &$crate::hex::ExpectedHexLen::Exact((Self::NUM_BYTES << 1) + 2),
                 )
                 .map(|bytes| Self::from_bytes(bytes.as_slice()).unwrap())
             }
@@ -41,7 +41,7 @@ macro_rules! impl_bytes {
 
             #[inline]
             pub fn to_hex(&self) -> String {
-                $crate::internal::hex::to_hex(self.as_bytes(), false)
+                $crate::hex::to_hex(self.as_bytes(), false)
             }
         }
 
@@ -71,7 +71,7 @@ macro_rules! impl_bytes {
                 &self,
                 serializer: S,
             ) -> Result<S::Ok, S::Error> {
-                $crate::internal::ser::serialize_fixed_bytes(&self.0, serializer)
+                $crate::ser::serialize_fixed_bytes(&self.0, serializer)
             }
         }
 
@@ -80,7 +80,7 @@ macro_rules! impl_bytes {
             fn deserialize<D: $crate::serde::Deserializer<'de>>(
                 deserializer: D,
             ) -> Result<Self, D::Error> {
-                $crate::internal::ser::deserialize_exact_size(deserializer).map(Self)
+                $crate::ser::deserialize_exact_size(deserializer).map(Self)
             }
         }
     };

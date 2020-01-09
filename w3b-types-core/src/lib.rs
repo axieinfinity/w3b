@@ -9,13 +9,7 @@ pub use num_traits;
 #[doc(hidden)]
 pub use serde;
 
-mod address;
-mod bytes;
-#[doc(hidden)]
-pub mod internal;
-mod numeric;
-
-pub use address::*;
-pub use bytes::*;
-pub use internal::hex::HexError;
-pub use numeric::*;
+pub mod bytes;
+pub mod hex;
+pub mod numeric;
+pub mod ser;

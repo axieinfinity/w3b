@@ -1,5 +1,6 @@
 [workspace]
 members = [
     "w3b",
-    "w3b-types",
+    "w3b-types-abi",
+    "w3b-types-core",
 ]

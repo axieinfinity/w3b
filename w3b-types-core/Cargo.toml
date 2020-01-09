@@ -1,0 +1,28 @@
+[package]
+name = "w3b-types-core"
+version = "0.1.0"
+description = "Web3 types' core utilities."
+authors = ["Sky Mavis Engineering <engineering@skymavis.com>"]
+edition = "2018"
+license = "MIT"
+homepage = "https://github.com/skymavis/w3b"
+repository = "https://github.com/skymavis/w3b"
+categories = ["data-structures"]
+keywords = ["web3", "api", "ethereum"]
+include = ["src/**/*", "LICENSE", "README.md"]
+readme = "README.md"
+
+[package.metadata.docs.rs]
+all-features = true
+
+[badges]
+travis-ci = { repository = "skymavis/w3b", branch = "master" }
+coveralls = { repository = "skymavis/w3b", branch = "master" }
+is-it-maintained-issue-resolution = { repository = "skymavis/w3b" }
+is-it-maintained-open-issues = { repository = "skymavis/w3b" }
+maintenance = { status = "actively-developed" }
+
+[dependencies]
+num-bigint = "0.2.4"
+num-traits = "0.2.10"
+serde = { version = "1.0.104" }

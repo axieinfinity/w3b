@@ -1,13 +1,13 @@
 use std::{cmp::Ordering, fs::File, io, io::Write, path::PathBuf};
 
 const BASE_PATH: &'static str = env!("CARGO_MANIFEST_DIR");
-const PATH: &'static str = "src/numeric/numeric.rs";
+const PATH: &'static str = "src/numeric.rs";
 
 fn main() -> io::Result<()> {
     let path = PathBuf::from(BASE_PATH).join(PATH);
     let mut file = File::create(path).unwrap();
 
-    writeln!(file, "use crate::impl_num;")?;
+    writeln!(file, "use w3b_types_core::impl_num;")?;
 
     for size in (8..=256).step_by(8) {
         writeln!(file)?;

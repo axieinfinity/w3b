@@ -1,9 +1,7 @@
 mod error;
 mod macros;
-mod numeric;
 
 pub use error::*;
-pub use numeric::*;
 
 #[cfg(test)]
 mod tests {
@@ -11,7 +9,10 @@ mod tests {
 
     use num_bigint::BigUint;
 
-    use super::{Uint16, Uint8};
+    use crate::impl_num;
+
+    impl_num!(Uint8; @uint, size = 1);
+    impl_num!(Uint16; @uint, size = 2; @gt u8);
 
     #[test]
     fn convenient_upcast() {

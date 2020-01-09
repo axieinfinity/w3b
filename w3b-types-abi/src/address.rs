@@ -1,4 +1,4 @@
-use crate::impl_bytes;
+use w3b_types_core::impl_bytes;
 
 use super::bytes::Bytes20;
 

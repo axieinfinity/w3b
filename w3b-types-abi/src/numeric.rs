@@ -1,4 +1,4 @@
-use crate::impl_num;
+use w3b_types_core::impl_num;
 
 impl_num! {
     Int8;
