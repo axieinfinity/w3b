@@ -200,7 +200,12 @@ macro_rules! impl_num {
         impl From<$num> for $primitive {
             #[inline]
             fn from(value: $num) -> Self {
-                $crate::num_traits::NumCast::from($crate::num_bigint::BigInt::from(value)).unwrap()
+                let mut repr = [0; ::std::mem::size_of::<$primitive>()];
+
+                repr.as_mut()[::std::mem::size_of::<$primitive>() - $num::NUM_BYTES..]
+                    .copy_from_slice(value.as_bytes());
+
+                <$primitive>::from_be_bytes(repr)
             }
         }
     };
@@ -209,8 +214,7 @@ macro_rules! impl_num {
         impl From<$primitive> for $num {
             #[inline]
             fn from(value: $primitive) -> Self {
-                use ::std::convert::TryInto;
-                $crate::num_bigint::BigInt::from(value).try_into().unwrap()
+                Self::from_bytes(value.to_be_bytes().as_ref()).unwrap()
             }
         }
     };
@@ -220,10 +224,22 @@ macro_rules! impl_num {
             type Error = $crate::numeric::NumCastError;
 
             fn try_from(value: $num) -> Result<Self, Self::Error> {
-                let value = $crate::num_bigint::BigInt::from(value);
+                let mut bytes = value.as_bytes();
 
-                $crate::num_traits::NumCast::from(value.clone())
-                    .ok_or(Self::Error::new(value, stringify!($primitive)))
+                while !bytes.is_empty() && bytes[0] == 0 {
+                    bytes = &bytes[1..];
+                }
+
+                if bytes.len() <= ::std::mem::size_of::<$primitive>() {
+                    let mut repr = [0; ::std::mem::size_of::<$primitive>()];
+
+                    repr.as_mut()[::std::mem::size_of::<$primitive>() - bytes.len()..]
+                        .copy_from_slice(bytes);
+
+                    Ok(<$primitive>::from_be_bytes(repr))
+                } else {
+                    Err(Self::Error::new(value.into(), stringify!($primitive)))
+                }
             }
         }
     };
@@ -234,8 +250,8 @@ macro_rules! impl_num {
 
             #[inline]
             fn try_from(value: $primitive) -> Result<Self, Self::Error> {
-                use ::std::convert::TryInto;
-                $crate::num_bigint::BigInt::from(value).try_into()
+                Self::from_bytes(value.to_be_bytes().as_ref())
+                    .map_err(|_| Self::Error::new(value.into(), stringify!($num)))
             }
         }
     };
@@ -249,7 +265,8 @@ mod tests {
 
     use crate::impl_num;
 
-    impl_num!(Uint8; @uint, size = 1);
+    impl_num!(Uint8; @uint, size = 1; @eq u8; @lt i8, i16, u16);
+    impl_num!(Uint16; @uint, size = 2; @gt i8, u8; @eq u16; @lt i16);
     impl_num!(Uint24; @uint, size = 3; @gt i8, i16, u8, u16);
 
     #[test]
@@ -260,8 +277,18 @@ mod tests {
 
     #[test]
     #[should_panic(expected = "cannot cast 256 to Uint8")]
-    fn downcast_overflow() {
+    fn downcast_overflow_from_bigint() {
         let _uint8: Uint8 = BigUint::from(255_u16).try_into().unwrap();
         let _uint8: Uint8 = BigUint::from(256_u16).try_into().unwrap();
+    }
+
+    #[test]
+    #[should_panic(expected = "cannot cast 256 to u8")]
+    fn downcast_overflow_to_primitive() {
+        let uint16: Uint16 = BigUint::from(255_u16).try_into().unwrap();
+        let _u8: u8 = uint16.try_into().unwrap();
+
+        let uint16: Uint16 = BigUint::from(256_u16).try_into().unwrap();
+        let _u8: u8 = uint16.try_into().unwrap();
     }
 }
