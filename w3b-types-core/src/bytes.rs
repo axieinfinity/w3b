@@ -46,7 +46,7 @@ macro_rules! impl_bytes {
 
             #[inline]
             pub fn to_hex(&self) -> String {
-                $crate::hex::to_hex(self.as_bytes(), false)
+                $crate::hex::to_hex(self.as_bytes(), true)
             }
         }
 
