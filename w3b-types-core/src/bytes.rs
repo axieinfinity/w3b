@@ -16,17 +16,16 @@ macro_rules! impl_bytes {
             pub fn from_bytes(
                 bytes: impl AsRef<[u8]>,
             ) -> Result<Self, ::std::array::TryFromSliceError> {
+                // TODO: Optimize this
                 <[u8; Self::NUM_BYTES] as ::std::convert::TryFrom<&[u8]>>::try_from(bytes.as_ref())
                     .map(Self)
             }
 
             #[inline]
             pub fn from_hex(hex: impl AsRef<str>) -> Result<Self, $crate::hex::HexError> {
-                $crate::hex::from_hex(
-                    hex,
-                    &$crate::hex::ExpectedHexLen::Exact((Self::NUM_BYTES << 1) + 2),
-                )
-                .map(|bytes| Self::from_bytes(bytes.as_slice()).unwrap())
+                let mut repr = [0; Self::NUM_BYTES];
+                $crate::hex::from_hex(hex, true, &mut repr)?;
+                Ok(Self(repr))
             }
 
             #[inline]
@@ -71,7 +70,7 @@ macro_rules! impl_bytes {
                 &self,
                 serializer: S,
             ) -> Result<S::Ok, S::Error> {
-                $crate::ser::serialize_fixed_bytes(&self.0, serializer)
+                $crate::hex::serialize_fixed_len(&self.0, serializer)
             }
         }
 
@@ -80,8 +79,25 @@ macro_rules! impl_bytes {
             fn deserialize<D: $crate::serde::Deserializer<'de>>(
                 deserializer: D,
             ) -> Result<Self, D::Error> {
-                $crate::ser::deserialize_exact_size(deserializer).map(Self)
+                let mut repr = [0; Self::NUM_BYTES];
+                $crate::hex::deserialize_fixed_len(&mut repr, deserializer)?;
+                Ok(Self(repr))
             }
         }
     };
+}
+
+#[cfg(test)]
+mod tests {
+    #![allow(dead_code)]
+
+    use crate::impl_bytes;
+
+    impl_bytes!(Bytes3; size = 3);
+
+    #[test]
+    fn from_hex() {
+        let bytes3 = Bytes3::from_hex("0x007799").unwrap();
+        assert_eq!(bytes3.as_bytes(), &[0, 0x77, 0x99]);
+    }
 }

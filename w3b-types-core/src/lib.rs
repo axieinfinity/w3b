@@ -12,4 +12,3 @@ pub use serde;
 pub mod bytes;
 pub mod hex;
 pub mod numeric;
-pub mod ser;

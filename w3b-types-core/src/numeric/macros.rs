@@ -64,16 +64,15 @@ macro_rules! impl_num {
 
             #[inline]
             pub fn from_bytes(bytes: &[u8]) -> Result<Self, ::std::array::TryFromSliceError> {
+                // TODO: Optimize this
                 <[u8; Self::NUM_BYTES] as ::std::convert::TryFrom<&[u8]>>::try_from(bytes).map(Self)
             }
 
             #[inline]
             pub fn from_hex(hex: impl AsRef<str>) -> Result<Self, $crate::hex::HexError> {
-                $crate::hex::from_hex(
-                    hex,
-                    &$crate::hex::ExpectedHexLen::AtMost((Self::NUM_BYTES << 1) + 2),
-                )
-                .map(|bytes| Self::from_bytes(bytes.as_slice()).unwrap())
+                let mut repr = [0; Self::NUM_BYTES];
+                $crate::hex::from_hex(hex, false, &mut repr)?;
+                Ok(Self(repr))
             }
 
             #[inline]
@@ -132,7 +131,7 @@ macro_rules! impl_num {
                 &self,
                 serializer: S,
             ) -> Result<S::Ok, S::Error> {
-                $crate::ser::serialize_numeric(&self.0, serializer)
+                $crate::hex::serialize(self.0, serializer)
             }
         }
 
@@ -141,7 +140,9 @@ macro_rules! impl_num {
             fn deserialize<D: $crate::serde::Deserializer<'de>>(
                 deserializer: D,
             ) -> Result<Self, D::Error> {
-                $crate::ser::deserialize_at_most_size(deserializer).map(Self)
+                let mut repr = [0; Self::NUM_BYTES];
+                $crate::hex::deserialize(&mut repr, deserializer)?;
+                Ok(Self(repr))
             }
         }
     };
@@ -256,4 +257,29 @@ macro_rules! impl_num {
             }
         }
     };
+}
+
+#[cfg(test)]
+mod tests {
+    use std::convert::TryInto;
+
+    use num_bigint::BigUint;
+
+    use crate::impl_num;
+
+    impl_num!(Uint8; @uint, size = 1);
+    impl_num!(Uint24; @uint, size = 3; @gt i8, i16, u8, u16);
+
+    #[test]
+    fn convenient_upcast() {
+        let uint24: Uint24 = 257_i16.into();
+        assert_eq!(uint24.as_bytes(), &[0, 1, 1]);
+    }
+
+    #[test]
+    #[should_panic(expected = "cannot cast 256 to Uint8")]
+    fn downcast_overflow() {
+        let _uint8: Uint8 = BigUint::from(255_u16).try_into().unwrap();
+        let _uint8: Uint8 = BigUint::from(256_u16).try_into().unwrap();
+    }
 }

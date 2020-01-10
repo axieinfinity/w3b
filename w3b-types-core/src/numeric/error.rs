@@ -32,7 +32,7 @@ impl fmt::Debug for NumCastError {
 impl fmt::Display for NumCastError {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:?}", self)
+        <Self as fmt::Debug>::fmt(self, f)
     }
 }
 
