@@ -3,7 +3,7 @@ use std::fmt;
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use w3b_types_core::hex::{self, HexVisitor};
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct BlockNumber(u64);
 
 impl Serialize for BlockNumber {
@@ -22,7 +22,7 @@ impl<'de> Deserialize<'de> for BlockNumber {
     }
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum BlockId {
     Earliest,
     Latest,
