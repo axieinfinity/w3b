@@ -6,6 +6,13 @@ use w3b_types_core::hex::{self, HexVisitor};
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub struct BlockNumber(u64);
 
+impl From<u64> for BlockNumber {
+    #[inline]
+    fn from(value: u64) -> Self {
+        BlockNumber(value)
+    }
+}
+
 impl Serialize for BlockNumber {
     #[inline]
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
@@ -28,6 +35,27 @@ pub enum BlockId {
     Latest,
     Pending,
     Number(BlockNumber),
+}
+
+impl Default for BlockId {
+    #[inline]
+    fn default() -> Self {
+        BlockId::Latest
+    }
+}
+
+impl From<BlockNumber> for BlockId {
+    #[inline]
+    fn from(value: BlockNumber) -> Self {
+        BlockId::Number(value)
+    }
+}
+
+impl From<u64> for BlockId {
+    #[inline]
+    fn from(value: u64) -> Self {
+        BlockId::Number(BlockNumber(value))
+    }
 }
 
 impl Serialize for BlockId {
