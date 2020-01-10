@@ -103,21 +103,15 @@ macro_rules! impl_num {
 
         impl ::std::fmt::LowerHex for $num {
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                if f.alternate() {
-                    write!(f, "0x")?;
-                }
-
-                write!(f, "{}", &self.to_hex()[2..])
+                let skip_prefix = (1 - f.alternate() as usize) << 1;
+                write!(f, "{}", &self.to_hex()[skip_prefix..])
             }
         }
 
         impl ::std::fmt::UpperHex for $num {
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                if f.alternate() {
-                    write!(f, "0x")?;
-                }
-
-                write!(f, "{}", &self.to_hex().to_uppercase()[2..])
+                let prefix = "0x".repeat(f.alternate() as usize);
+                write!(f, "{}{}", prefix, &self.to_hex().to_uppercase()[2..])
             }
         }
 
