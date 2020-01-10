@@ -1,7 +1,7 @@
 #[macro_export]
 macro_rules! impl_bytes {
     ($bytes:ident; size = $n_bytes:literal) => {
-        #[derive(PartialEq, Eq, Debug)]
+        #[derive(Clone, PartialEq, Eq, Debug)]
         pub struct $bytes([u8; Self::NUM_BYTES]);
 
         impl $bytes {

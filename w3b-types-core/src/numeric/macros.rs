@@ -51,7 +51,7 @@ macro_rules! impl_num {
     ($num:ident $(;)?) => {};
 
     (@common $num:ident, $n_bytes:literal) => {
-        #[derive(PartialEq, Eq, Debug)]
+        #[derive(Clone, PartialEq, Eq, Debug)]
         pub struct $num([u8; Self::NUM_BYTES]);
 
         impl $num {
@@ -289,6 +289,8 @@ mod tests {
         let _u8: u8 = uint16.try_into().unwrap();
 
         let uint16: Uint16 = BigUint::from(256_u16).try_into().unwrap();
+        let _i16: i16 = uint16.clone().try_into().unwrap();
+        let _u16: u16 = uint16.clone().into();
         let _u8: u8 = uint16.try_into().unwrap();
     }
 }
