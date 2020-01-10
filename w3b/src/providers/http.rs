@@ -11,15 +11,19 @@ pub struct HttpProvider {
 
 impl HttpProvider {
     #[inline]
-    pub fn new(client: Client, uri: String) -> Self {
+    pub fn new(uri: String) -> Self {
+        Self::with_client(Client::new(), uri)
+    }
+
+    #[inline]
+    pub fn with_client(client: Client, uri: String) -> Self {
         Self { client, uri }
     }
 }
 
 impl Provider for HttpProvider {
-    type Output = serde_json::Value;
     type Error = reqwest::Error;
-    type Response = Pin<Box<dyn Future<Output = Result<Self::Output, Self::Error>>>>;
+    type Response = Pin<Box<dyn Future<Output = Result<serde_json::Value, Self::Error>>>>;
 
     fn send(&self, request: Request) -> Self::Response {
         let request = self.client.post(&self.uri).json(&request);
