@@ -1,10 +1,9 @@
-use std::{error::Error as StdError, future::Future};
+use std::future::Future;
 
-use super::json_rpc::Request;
+use super::{error::Error, json_rpc::Request};
 
 pub trait Provider {
-    type Error: StdError;
-    type Response: Future<Output = Result<serde_json::Value, Self::Error>>;
+    type Response: Future<Output = Result<serde_json::Value, Error>>;
 
     fn send(&self, request: Request) -> Self::Response;
 

@@ -2,7 +2,7 @@ use std::{future::Future, pin::Pin};
 
 use reqwest::Client;
 
-use crate::{Provider, Request};
+use crate::{error::Error, json_rpc::Request, provider::Provider};
 
 pub struct HttpProvider {
     client: Client,
@@ -22,15 +22,16 @@ impl HttpProvider {
 }
 
 impl Provider for HttpProvider {
-    type Error = reqwest::Error;
-    type Response = Pin<Box<dyn Future<Output = Result<serde_json::Value, Self::Error>>>>;
+    type Response = Pin<Box<dyn Future<Output = Result<serde_json::Value, Error>>>>;
 
     fn send(&self, request: Request) -> Self::Response {
         let request = self.client.post(&self.uri).json(&request);
 
         Box::pin(async move {
             let response = request.send().await?;
-            response.json().await
+            let bytes = response.bytes().await?;
+            let value = serde_json::from_slice(&bytes)?;
+            Ok(value)
         })
     }
 }
