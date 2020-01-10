@@ -1,0 +1,39 @@
+use std::{error::Error as StdError, fmt};
+
+pub enum Error {
+    Decoder(serde_json::Error),
+    Provider(Box<dyn StdError>),
+}
+
+impl fmt::Debug for Error {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Error::Decoder(error) => error.fmt(f),
+            Error::Provider(error) => error.fmt(f),
+        }
+    }
+}
+
+impl fmt::Display for Error {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        <Self as fmt::Debug>::fmt(self, f)
+    }
+}
+
+impl StdError for Error {}
+
+impl From<serde_json::Error> for Error {
+    #[inline]
+    fn from(error: serde_json::Error) -> Self {
+        Error::Decoder(error)
+    }
+}
+
+impl From<reqwest::Error> for Error {
+    #[inline]
+    fn from(error: reqwest::Error) -> Self {
+        Error::Provider(Box::new(error))
+    }
+}
