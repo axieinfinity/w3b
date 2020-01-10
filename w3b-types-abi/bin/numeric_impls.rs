@@ -83,14 +83,20 @@ struct Numeric(pub Kind, pub u16);
 
 impl Numeric {
     pub fn fits_in(&self, other: &Self) -> Ordering {
-        if self.1 != other.1 {
-            return self.1.cmp(&other.1);
-        }
-
-        if self.0 != other.0 {
-            Ordering::Less
+        if self.0 == other.0 {
+            self.1.cmp(&other.1)
         } else {
-            Ordering::Equal
+            match self.0 {
+                Kind::Int => {
+                    if self.1 > other.1 {
+                        Ordering::Greater
+                    } else {
+                        Ordering::Less
+                    }
+                }
+
+                Kind::Uint => Ordering::Less,
+            }
         }
     }
 

@@ -266,12 +266,12 @@ mod tests {
     use crate::impl_num;
 
     impl_num!(Uint8; @uint, size = 1; @eq u8; @lt i8, i16, u16);
-    impl_num!(Uint16; @uint, size = 2; @gt i8, u8; @eq u16; @lt i16);
-    impl_num!(Uint24; @uint, size = 3; @gt i8, i16, u8, u16);
+    impl_num!(Uint16; @uint, size = 2; @gt u8; @eq u16; @lt i8, i16);
+    impl_num!(Uint24; @uint, size = 3; @gt u8, u16; @lt i8, i16);
 
     #[test]
     fn convenient_upcast() {
-        let uint24: Uint24 = 257_i16.into();
+        let uint24: Uint24 = 257_u16.into();
         assert_eq!(uint24.as_bytes(), &[0, 1, 1]);
     }
 
@@ -285,10 +285,10 @@ mod tests {
     #[test]
     #[should_panic(expected = "cannot cast 256 to u8")]
     fn downcast_overflow_to_primitive() {
-        let uint16: Uint16 = BigUint::from(255_u16).try_into().unwrap();
+        let uint16 = Uint16::from(255_u16);
         let _u8: u8 = uint16.try_into().unwrap();
 
-        let uint16: Uint16 = BigUint::from(256_u16).try_into().unwrap();
+        let uint16 = Uint16::from(256_u16);
         let _i16: i16 = uint16.clone().try_into().unwrap();
         let _u16: u16 = uint16.clone().into();
         let _u8: u8 = uint16.try_into().unwrap();

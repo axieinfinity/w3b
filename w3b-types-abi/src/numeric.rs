@@ -213,197 +213,221 @@ impl_num! {
 impl_num! {
     Uint16;
     @uint, size = 2;
-    @gt i8, u8;
+    @gt u8;
     @eq u16;
-    @lt i16, i32, i64, u32, u64;
+    @lt i8, i16, i32, i64, u32, u64;
 }
 
 impl_num! {
     Uint24;
     @uint, size = 3;
-    @gt i8, i16, u8, u16;
-    @lt i32, i64, u32, u64;
+    @gt u8, u16;
+    @lt i8, i16, i32, i64, u32, u64;
 }
 
 impl_num! {
     Uint32;
     @uint, size = 4;
-    @gt i8, i16, u8, u16;
+    @gt u8, u16;
     @eq u32;
-    @lt i32, i64, u64;
+    @lt i8, i16, i32, i64, u64;
 }
 
 impl_num! {
     Uint40;
     @uint, size = 5;
-    @gt i8, i16, i32, u8, u16, u32;
-    @lt i64, u64;
+    @gt u8, u16, u32;
+    @lt i8, i16, i32, i64, u64;
 }
 
 impl_num! {
     Uint48;
     @uint, size = 6;
-    @gt i8, i16, i32, u8, u16, u32;
-    @lt i64, u64;
+    @gt u8, u16, u32;
+    @lt i8, i16, i32, i64, u64;
 }
 
 impl_num! {
     Uint56;
     @uint, size = 7;
-    @gt i8, i16, i32, u8, u16, u32;
-    @lt i64, u64;
+    @gt u8, u16, u32;
+    @lt i8, i16, i32, i64, u64;
 }
 
 impl_num! {
     Uint64;
     @uint, size = 8;
-    @gt i8, i16, i32, u8, u16, u32;
+    @gt u8, u16, u32;
     @eq u64;
-    @lt i64;
+    @lt i8, i16, i32, i64;
 }
 
 impl_num! {
     Uint72;
     @uint, size = 9;
-    @gt i8, i16, i32, i64, u8, u16, u32, u64;
+    @gt u8, u16, u32, u64;
+    @lt i8, i16, i32, i64;
 }
 
 impl_num! {
     Uint80;
     @uint, size = 10;
-    @gt i8, i16, i32, i64, u8, u16, u32, u64;
+    @gt u8, u16, u32, u64;
+    @lt i8, i16, i32, i64;
 }
 
 impl_num! {
     Uint88;
     @uint, size = 11;
-    @gt i8, i16, i32, i64, u8, u16, u32, u64;
+    @gt u8, u16, u32, u64;
+    @lt i8, i16, i32, i64;
 }
 
 impl_num! {
     Uint96;
     @uint, size = 12;
-    @gt i8, i16, i32, i64, u8, u16, u32, u64;
+    @gt u8, u16, u32, u64;
+    @lt i8, i16, i32, i64;
 }
 
 impl_num! {
     Uint104;
     @uint, size = 13;
-    @gt i8, i16, i32, i64, u8, u16, u32, u64;
+    @gt u8, u16, u32, u64;
+    @lt i8, i16, i32, i64;
 }
 
 impl_num! {
     Uint112;
     @uint, size = 14;
-    @gt i8, i16, i32, i64, u8, u16, u32, u64;
+    @gt u8, u16, u32, u64;
+    @lt i8, i16, i32, i64;
 }
 
 impl_num! {
     Uint120;
     @uint, size = 15;
-    @gt i8, i16, i32, i64, u8, u16, u32, u64;
+    @gt u8, u16, u32, u64;
+    @lt i8, i16, i32, i64;
 }
 
 impl_num! {
     Uint128;
     @uint, size = 16;
-    @gt i8, i16, i32, i64, u8, u16, u32, u64;
+    @gt u8, u16, u32, u64;
+    @lt i8, i16, i32, i64;
 }
 
 impl_num! {
     Uint136;
     @uint, size = 17;
-    @gt i8, i16, i32, i64, u8, u16, u32, u64;
+    @gt u8, u16, u32, u64;
+    @lt i8, i16, i32, i64;
 }
 
 impl_num! {
     Uint144;
     @uint, size = 18;
-    @gt i8, i16, i32, i64, u8, u16, u32, u64;
+    @gt u8, u16, u32, u64;
+    @lt i8, i16, i32, i64;
 }
 
 impl_num! {
     Uint152;
     @uint, size = 19;
-    @gt i8, i16, i32, i64, u8, u16, u32, u64;
+    @gt u8, u16, u32, u64;
+    @lt i8, i16, i32, i64;
 }
 
 impl_num! {
     Uint160;
     @uint, size = 20;
-    @gt i8, i16, i32, i64, u8, u16, u32, u64;
+    @gt u8, u16, u32, u64;
+    @lt i8, i16, i32, i64;
 }
 
 impl_num! {
     Uint168;
     @uint, size = 21;
-    @gt i8, i16, i32, i64, u8, u16, u32, u64;
+    @gt u8, u16, u32, u64;
+    @lt i8, i16, i32, i64;
 }
 
 impl_num! {
     Uint176;
     @uint, size = 22;
-    @gt i8, i16, i32, i64, u8, u16, u32, u64;
+    @gt u8, u16, u32, u64;
+    @lt i8, i16, i32, i64;
 }
 
 impl_num! {
     Uint184;
     @uint, size = 23;
-    @gt i8, i16, i32, i64, u8, u16, u32, u64;
+    @gt u8, u16, u32, u64;
+    @lt i8, i16, i32, i64;
 }
 
 impl_num! {
     Uint192;
     @uint, size = 24;
-    @gt i8, i16, i32, i64, u8, u16, u32, u64;
+    @gt u8, u16, u32, u64;
+    @lt i8, i16, i32, i64;
 }
 
 impl_num! {
     Uint200;
     @uint, size = 25;
-    @gt i8, i16, i32, i64, u8, u16, u32, u64;
+    @gt u8, u16, u32, u64;
+    @lt i8, i16, i32, i64;
 }
 
 impl_num! {
     Uint208;
     @uint, size = 26;
-    @gt i8, i16, i32, i64, u8, u16, u32, u64;
+    @gt u8, u16, u32, u64;
+    @lt i8, i16, i32, i64;
 }
 
 impl_num! {
     Uint216;
     @uint, size = 27;
-    @gt i8, i16, i32, i64, u8, u16, u32, u64;
+    @gt u8, u16, u32, u64;
+    @lt i8, i16, i32, i64;
 }
 
 impl_num! {
     Uint224;
     @uint, size = 28;
-    @gt i8, i16, i32, i64, u8, u16, u32, u64;
+    @gt u8, u16, u32, u64;
+    @lt i8, i16, i32, i64;
 }
 
 impl_num! {
     Uint232;
     @uint, size = 29;
-    @gt i8, i16, i32, i64, u8, u16, u32, u64;
+    @gt u8, u16, u32, u64;
+    @lt i8, i16, i32, i64;
 }
 
 impl_num! {
     Uint240;
     @uint, size = 30;
-    @gt i8, i16, i32, i64, u8, u16, u32, u64;
+    @gt u8, u16, u32, u64;
+    @lt i8, i16, i32, i64;
 }
 
 impl_num! {
     Uint248;
     @uint, size = 31;
-    @gt i8, i16, i32, i64, u8, u16, u32, u64;
+    @gt u8, u16, u32, u64;
+    @lt i8, i16, i32, i64;
 }
 
 impl_num! {
     Uint256;
     @uint, size = 32;
-    @gt i8, i16, i32, i64, u8, u16, u32, u64;
+    @gt u8, u16, u32, u64;
+    @lt i8, i16, i32, i64;
 }
 
 #[cfg(has_i128)]
@@ -457,20 +481,20 @@ const _I128_IMPLS: () = {
     impl_num!(Uint112; @lt i128, u128);
     impl_num!(Uint120; @lt i128, u128);
     impl_num!(Uint128; @eq u128; @lt i128);
-    impl_num!(Uint136; @gt i128, u128);
-    impl_num!(Uint144; @gt i128, u128);
-    impl_num!(Uint152; @gt i128, u128);
-    impl_num!(Uint160; @gt i128, u128);
-    impl_num!(Uint168; @gt i128, u128);
-    impl_num!(Uint176; @gt i128, u128);
-    impl_num!(Uint184; @gt i128, u128);
-    impl_num!(Uint192; @gt i128, u128);
-    impl_num!(Uint200; @gt i128, u128);
-    impl_num!(Uint208; @gt i128, u128);
-    impl_num!(Uint216; @gt i128, u128);
-    impl_num!(Uint224; @gt i128, u128);
-    impl_num!(Uint232; @gt i128, u128);
-    impl_num!(Uint240; @gt i128, u128);
-    impl_num!(Uint248; @gt i128, u128);
-    impl_num!(Uint256; @gt i128, u128);
+    impl_num!(Uint136; @gt u128; @lt i128);
+    impl_num!(Uint144; @gt u128; @lt i128);
+    impl_num!(Uint152; @gt u128; @lt i128);
+    impl_num!(Uint160; @gt u128; @lt i128);
+    impl_num!(Uint168; @gt u128; @lt i128);
+    impl_num!(Uint176; @gt u128; @lt i128);
+    impl_num!(Uint184; @gt u128; @lt i128);
+    impl_num!(Uint192; @gt u128; @lt i128);
+    impl_num!(Uint200; @gt u128; @lt i128);
+    impl_num!(Uint208; @gt u128; @lt i128);
+    impl_num!(Uint216; @gt u128; @lt i128);
+    impl_num!(Uint224; @gt u128; @lt i128);
+    impl_num!(Uint232; @gt u128; @lt i128);
+    impl_num!(Uint240; @gt u128; @lt i128);
+    impl_num!(Uint248; @gt u128; @lt i128);
+    impl_num!(Uint256; @gt u128; @lt i128);
 };
