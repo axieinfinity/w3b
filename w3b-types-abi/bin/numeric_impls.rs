@@ -94,12 +94,9 @@ impl Numeric {
         }
     }
 
-    pub fn query_types<'a>(
-        &self,
-        ord: Ordering,
-        types: impl Iterator<Item = &'a Numeric>,
-    ) -> String {
+    pub fn query_types(&self, ord: Ordering, types: &[Numeric]) -> String {
         types
+            .iter()
             .filter(|primitive| self.fits_in(*primitive) == ord)
             .map(|primitive| format!("{}{}", primitive.0.primitive(), primitive.1))
             .collect::<Vec<_>>()
@@ -111,8 +108,8 @@ impl Numeric {
         writeln!(writer, "    {}{};", self.0.ty(), self.1)?;
         writeln!(writer, "    {}, size = {};", self.0.directive(), self.1 / 8)?;
 
-        for ord in ORDERINGS.iter() {
-            let primitives = self.query_types(*ord, PRIMITIVES.iter());
+        for ord in ORDERINGS {
+            let primitives = self.query_types(*ord, PRIMITIVES);
 
             if !primitives.is_empty() {
                 match ord {
@@ -129,8 +126,8 @@ impl Numeric {
     pub fn impl_128(&self, writer: &mut impl io::Write) -> io::Result<()> {
         write!(writer, "    impl_num!({}{}", self.0.ty(), self.1)?;
 
-        for ord in ORDERINGS.iter() {
-            let primitives = self.query_types(*ord, PRIMITIVES_128.iter());
+        for ord in ORDERINGS {
+            let primitives = self.query_types(*ord, PRIMITIVES_128);
 
             if !primitives.is_empty() {
                 match ord {
