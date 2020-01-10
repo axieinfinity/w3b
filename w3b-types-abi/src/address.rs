@@ -31,7 +31,7 @@ mod tests {
     }
 
     #[test]
-    #[should_panic(expected = "incorrect length 41, expected 42")]
+    #[should_panic(expected = "incorrect length at 41, expected 42")]
     fn from_hex_with_incorrect_len() {
         assert_eq!(
             Address::from_hex(String::from("0x") + &"6".repeat(39)).unwrap(),

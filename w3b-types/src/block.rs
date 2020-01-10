@@ -1,26 +1,34 @@
 use std::fmt;
 
-use num_bigint::BigUint;
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
-use w3b_types_core::{
-    hex::{self, HexError},
-    ser,
-};
+use w3b_types_core::hex::{self, HexVisitor};
 
 #[derive(PartialEq, Eq, Debug)]
-pub struct BlockNumber(BigUint);
+pub struct BlockNumber(u64);
 
 impl Serialize for BlockNumber {
     #[inline]
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        ser::serialize_numeric(self.0.to_bytes_be().as_slice(), serializer)
+        let mut bytes = [0; 8];
+
+        for i in 0..8 {
+            bytes[7 - i] = (self.0 >> (i << 3) as u64 & 0xff) as u8;
+        }
+
+        hex::serialize(bytes.as_ref(), serializer)
     }
 }
 
 impl<'de> Deserialize<'de> for BlockNumber {
     #[inline]
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        ser::deserialize(deserializer).map(|bytes| Self(BigUint::from_bytes_be(bytes.as_slice())))
+        let mut bytes = [0; 8];
+
+        hex::deserialize(&mut bytes, deserializer)?;
+
+        Ok(Self(
+            bytes.iter().fold(0, |repr, byte| repr << 8 | *byte as u64),
+        ))
     }
 }
 
@@ -64,17 +72,16 @@ impl<'de> Deserialize<'de> for BlockId {
                     "earliest" => Ok(BlockId::Earliest),
                     "latest" => Ok(BlockId::Latest),
                     "pending" => Ok(BlockId::Pending),
-                    _ => hex::from_hex(v, None)
-                        .map_err(|error| match error {
-                            HexError::MissingPrefix | HexError::InvalidChar { .. } => {
-                                E::custom(error)
-                            }
-                            HexError::IncorrectLen { len, .. }
-                            | HexError::LenOverflow { len, .. } => E::invalid_length(len, &self),
-                        })
-                        .map(|bytes| {
-                            BlockId::Number(BlockNumber(BigUint::from_bytes_be(bytes.as_slice())))
-                        }),
+                    _ => {
+                        let mut bytes = [0; 8];
+                        let visitor = HexVisitor::new(&mut bytes);
+
+                        visitor.visit_str(v)?;
+
+                        Ok(BlockId::Number(BlockNumber(
+                            bytes.iter().fold(0, |repr, byte| repr << 8 | *byte as u64),
+                        )))
+                    }
                 }
             }
         }
@@ -85,14 +92,12 @@ impl<'de> Deserialize<'de> for BlockId {
 
 #[cfg(test)]
 mod tests {
-    use num_bigint::BigUint;
-
     use super::{BlockId, BlockNumber};
 
     #[test]
     fn serialize() {
         assert_eq!(
-            serde_json::to_string(&BlockNumber(BigUint::from(0x6789_u16))).unwrap(),
+            serde_json::to_string(&BlockNumber(0x6789)).unwrap(),
             "\"0x6789\"",
         );
 
@@ -102,10 +107,7 @@ mod tests {
         );
 
         assert_eq!(
-            serde_json::to_string(&BlockId::Number(BlockNumber(BigUint::from(
-                0x1_000_000_000_000_u64
-            ))))
-            .unwrap(),
+            serde_json::to_string(&BlockId::Number(BlockNumber(0x1_000_000_000_000))).unwrap(),
             "\"0x1000000000000\"",
         );
     }
@@ -114,7 +116,7 @@ mod tests {
     fn deserialize() {
         assert_eq!(
             serde_json::from_str::<BlockNumber>("\"0x6789\"").unwrap(),
-            BlockNumber(BigUint::from(0x6789_u16)),
+            BlockNumber(0x6789),
         );
 
         assert_eq!(
@@ -124,7 +126,7 @@ mod tests {
 
         assert_eq!(
             serde_json::from_str::<BlockId>("\"0x1000000000000\"").unwrap(),
-            BlockId::Number(BlockNumber(BigUint::from(0x1_000_000_000_000_u64))),
+            BlockId::Number(BlockNumber(0x1_000_000_000_000)),
         );
     }
 }
