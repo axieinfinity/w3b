@@ -9,13 +9,7 @@ pub struct BlockNumber(u64);
 impl Serialize for BlockNumber {
     #[inline]
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        let mut bytes = [0; 8];
-
-        for i in 0..8 {
-            bytes[7 - i] = (self.0 >> (i << 3) as u64 & 0xff) as u8;
-        }
-
-        hex::serialize(bytes.as_ref(), serializer)
+        hex::serialize(self.0.to_be_bytes().as_ref(), serializer)
     }
 }
 
@@ -23,12 +17,8 @@ impl<'de> Deserialize<'de> for BlockNumber {
     #[inline]
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let mut bytes = [0; 8];
-
         hex::deserialize(&mut bytes, deserializer)?;
-
-        Ok(Self(
-            bytes.iter().fold(0, |repr, byte| repr << 8 | *byte as u64),
-        ))
+        Ok(Self(u64::from_be_bytes(bytes)))
     }
 }
 
@@ -75,12 +65,8 @@ impl<'de> Deserialize<'de> for BlockId {
                     _ => {
                         let mut bytes = [0; 8];
                         let visitor = HexVisitor::new(&mut bytes);
-
                         visitor.visit_str(v)?;
-
-                        Ok(BlockId::Number(BlockNumber(
-                            bytes.iter().fold(0, |repr, byte| repr << 8 | *byte as u64),
-                        )))
+                        Ok(BlockId::Number(BlockNumber(u64::from_be_bytes(bytes))))
                     }
                 }
             }
