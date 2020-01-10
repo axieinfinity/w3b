@@ -9,7 +9,7 @@ pub fn serialize<B: AsRef<[u8]>, S: Serializer>(
     bytes: B,
     serializer: S,
 ) -> Result<S::Ok, S::Error> {
-    serializer.serialize_str(&convert::to_hex(bytes, true))
+    serializer.serialize_str(&convert::to_hex(bytes, false))
 }
 
 #[inline]
@@ -17,7 +17,7 @@ pub fn serialize_fixed_len<B: AsRef<[u8]>, S: Serializer>(
     bytes: B,
     serializer: S,
 ) -> Result<S::Ok, S::Error> {
-    serializer.serialize_str(&convert::to_hex(bytes, false))
+    serializer.serialize_str(&convert::to_hex(bytes, true))
 }
 
 pub struct HexVisitor<'a> {
@@ -52,7 +52,7 @@ impl<'a, 'de> Visitor<'de> for HexVisitor<'a> {
             formatter,
             "a 0x-prefixed hexadecimal string with {} {}",
             if self.fixed_len {
-                format!("an exact length of")
+                format!("a fixed length of")
             } else {
                 format!("a length of at most")
             },

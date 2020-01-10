@@ -7,21 +7,21 @@ const HEX_CHARS: &'static [u8] = b"0123456789abcdef";
 /// ```rust
 /// use w3b_types_core::hex::to_hex;
 ///
-/// assert_eq!(&to_hex(&[0xf, 0xff, 0xf], true), "0xfff0f");
-/// assert_eq!(&to_hex(&[0, 0, 0x37], true), "0x37");
-/// assert_eq!(&to_hex(&[0, 0, 0xf], true), "0xf");
-/// assert_eq!(&to_hex(&[0x1], true), "0x1");
+/// assert_eq!(&to_hex(&[0xf, 0xff, 0xf], false), "0xfff0f");
+/// assert_eq!(&to_hex(&[0, 0, 0x37], false), "0x37");
+/// assert_eq!(&to_hex(&[0, 0, 0xf], false), "0xf");
+/// assert_eq!(&to_hex(&[0x1], false), "0x1");
 ///
-/// assert_eq!(&to_hex(&[0xf, 0xff, 0xf], false), "0x0fff0f");
-/// assert_eq!(&to_hex(&[0, 0, 0x37], false), "0x000037");
-/// assert_eq!(&to_hex(&[0, 0, 0xf], false), "0x00000f");
-/// assert_eq!(&to_hex(&[0x1], false), "0x01");
+/// assert_eq!(&to_hex(&[0xf, 0xff, 0xf], true), "0x0fff0f");
+/// assert_eq!(&to_hex(&[0, 0, 0x37], true), "0x000037");
+/// assert_eq!(&to_hex(&[0, 0, 0xf], true), "0x00000f");
+/// assert_eq!(&to_hex(&[0x1], true), "0x01");
 /// ```
-pub fn to_hex(bytes: impl AsRef<[u8]>, skip_leading_zeros: bool) -> String {
+pub fn to_hex(bytes: impl AsRef<[u8]>, fixed_len: bool) -> String {
     let bytes = bytes.as_ref();
     let mut index = 0;
 
-    if skip_leading_zeros {
+    if !fixed_len {
         while index < bytes.len() && bytes[index] == 0 {
             index += 1
         }
@@ -34,7 +34,7 @@ pub fn to_hex(bytes: impl AsRef<[u8]>, skip_leading_zeros: bool) -> String {
     let mut out = String::with_capacity((bytes.len() << 1) + 2);
     out.push_str("0x");
 
-    if skip_leading_zeros && bytes[index] < 0x10 {
+    if !fixed_len && bytes[index] < 0x10 {
         unsafe {
             out.as_mut_vec().push(HEX_CHARS[bytes[index] as usize]);
         }
@@ -85,7 +85,7 @@ pub fn to_hex(bytes: impl AsRef<[u8]>, skip_leading_zeros: bool) -> String {
 /// ```
 pub fn from_hex<'a>(
     hex: impl AsRef<str>,
-    exact_len: bool,
+    fixed_len: bool,
     mut bytes: impl AsMut<[u8]>,
 ) -> Result<usize, HexError> {
     let hex = hex.as_ref();
@@ -98,7 +98,7 @@ pub fn from_hex<'a>(
     let len = hex.len();
     let max_len = (bytes.len() << 1) + 2;
 
-    if exact_len && len != max_len {
+    if fixed_len && len != max_len {
         return Err(HexError::IncorrectLen {
             len,
             expected: max_len,

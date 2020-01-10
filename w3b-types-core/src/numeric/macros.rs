@@ -63,9 +63,19 @@ macro_rules! impl_num {
             }
 
             #[inline]
-            pub fn from_bytes(bytes: &[u8]) -> Result<Self, ::std::array::TryFromSliceError> {
-                // TODO: Optimize this
-                <[u8; Self::NUM_BYTES] as ::std::convert::TryFrom<&[u8]>>::try_from(bytes).map(Self)
+            pub fn from_bytes(bytes: impl AsRef<[u8]>) -> Result<Self, $crate::TypeError> {
+                let bytes = bytes.as_ref();
+
+                if bytes.len() <= Self::NUM_BYTES {
+                    let mut repr = [0; Self::NUM_BYTES];
+                    repr.as_mut()[Self::NUM_BYTES - bytes.len()..].copy_from_slice(bytes);
+                    Ok(Self(repr))
+                } else {
+                    Err($crate::TypeError::SliceTooLong {
+                        len: bytes.len(),
+                        max: Self::NUM_BYTES,
+                    })
+                }
             }
 
             #[inline]
@@ -152,15 +162,8 @@ macro_rules! impl_num {
             type Error = $crate::numeric::NumCastError;
 
             fn try_from(value: $crate::num_bigint::BigInt) -> Result<Self, Self::Error> {
-                let bytes = value.to_signed_bytes_be();
-
-                if bytes.len() <= Self::NUM_BYTES {
-                    let mut repr = [0; Self::NUM_BYTES];
-                    repr.as_mut()[Self::NUM_BYTES - bytes.len()..].copy_from_slice(&*bytes);
-                    Ok(Self(repr))
-                } else {
-                    Err(Self::Error::new(value, stringify!($num)))
-                }
+                Self::from_bytes(value.to_signed_bytes_be())
+                    .map_err(|_| Self::Error::new(value, stringify!($num)))
             }
         }
 
@@ -181,15 +184,8 @@ macro_rules! impl_num {
             type Error = $crate::numeric::NumCastError;
 
             fn try_from(value: $crate::num_bigint::BigUint) -> Result<Self, Self::Error> {
-                let bytes = value.to_bytes_be();
-
-                if bytes.len() <= Self::NUM_BYTES {
-                    let mut repr = [0; Self::NUM_BYTES];
-                    repr.as_mut()[Self::NUM_BYTES - bytes.len()..].copy_from_slice(&*bytes);
-                    Ok(Self(repr))
-                } else {
-                    Err(Self::Error::new(value.into(), stringify!($num)))
-                }
+                Self::from_bytes(value.to_bytes_be())
+                    .map_err(|_| Self::Error::new(value.into(), stringify!($num)))
             }
         }
 

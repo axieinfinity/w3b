@@ -10,5 +10,8 @@ pub use num_traits;
 pub use serde;
 
 pub mod bytes;
+mod error;
 pub mod hex;
 pub mod numeric;
+
+pub use error::*;
