@@ -27,3 +27,4 @@ reqwest = { version = "0.10.1", features = ["json"] }
 serde = { version = "1.0.104", features = ["derive"] }
 serde_json = "1.0.44"
 tokio = { version = "0.2.9", features = ["macros"] }
+w3b-types = { path = "../w3b-types"}
