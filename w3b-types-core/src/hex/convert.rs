@@ -2,6 +2,11 @@ use super::error::HexError;
 
 const HEX_CHARS: &'static [u8] = b"0123456789abcdef";
 
+pub const fn hex_len(num_bytes: usize) -> usize {
+    // 2 hexadecimal digits for each byte and additional 2 for the 0x prefix
+    (num_bytes << 1) + 2
+}
+
 /// Converts a slice of bytes to a hexadecimal string.
 ///
 /// ```rust
@@ -31,7 +36,7 @@ pub fn to_hex(bytes: impl AsRef<[u8]>, fixed_len: bool) -> String {
         return "0x0".to_owned();
     }
 
-    let mut out = String::with_capacity((bytes.len() << 1) + 2);
+    let mut out = String::with_capacity(hex_len(bytes.len()));
     out.push_str("0x");
 
     if !fixed_len && bytes[index] < 0x10 {
@@ -58,19 +63,15 @@ pub fn to_hex(bytes: impl AsRef<[u8]>, fixed_len: bool) -> String {
 /// use w3b_types_core::hex::{from_hex, HexError};
 ///
 /// fn assert_bytes(hex: &str, expected_bytes: &[u8]) {
-///   let mut bytes = [0; 10];
-///   let len = from_hex(hex, false, &mut bytes).unwrap();
-///   assert_eq!(&bytes[bytes.len() - len..], expected_bytes);
+///   let mut bytes = [0; 3];
+///   from_hex(hex, false, &mut bytes).unwrap();
+///   assert_eq!(&bytes, expected_bytes);
 /// }
 ///
-/// assert_bytes("0x7ff0f", &[0x7, 0xff, 0xf]);
-/// assert_bytes("0x3712", &[0x37, 0x12]);
-/// assert_bytes("0xf", &[0xf]);
-///
 /// assert_bytes("0x07ff0f", &[0x7, 0xff, 0xf]);
-/// assert_bytes("0x003712", &[0x37, 0x12]);
-/// assert_bytes("0x00000f", &[0xf]);
-/// assert_bytes("0x0000", &[0x0]);
+/// assert_bytes("0x3712", &[0, 0x37, 0x12]);
+/// assert_bytes("0x0000f", &[0, 0, 0xf]);
+/// assert_bytes("0x0000", &[0, 0, 0]);
 ///
 /// fn assert_error(hex: &str, exact_len: bool, expected_error: HexError) {
 ///   let mut bytes = [0; 3];
@@ -79,6 +80,7 @@ pub fn to_hex(bytes: impl AsRef<[u8]>, fixed_len: bool) -> String {
 /// }
 ///
 /// assert_error("12345", false, HexError::MissingPrefix);
+/// assert_error("0x", false, HexError::NoDigits);
 /// assert_error("0x001g", false, HexError::InvalidChar { ch: 'g', index: 5 });
 /// assert_error("0x00000", true, HexError::IncorrectLen { len: 7, expected: 8 });
 /// assert_error("0x0000000", false, HexError::LenTooLong { len: 9, max: 8 });
@@ -87,7 +89,7 @@ pub fn from_hex<'a>(
     hex: impl AsRef<str>,
     fixed_len: bool,
     mut bytes: impl AsMut<[u8]>,
-) -> Result<usize, HexError> {
+) -> Result<(), HexError> {
     let hex = hex.as_ref();
     let bytes = bytes.as_mut();
 
@@ -95,8 +97,12 @@ pub fn from_hex<'a>(
         return Err(HexError::MissingPrefix);
     }
 
+    if hex.len() <= 2 {
+        return Err(HexError::NoDigits);
+    }
+
     let len = hex.len();
-    let max_len = (bytes.len() << 1) + 2;
+    let max_len = hex_len(bytes.len());
 
     if fixed_len && len != max_len {
         return Err(HexError::IncorrectLen {
@@ -109,17 +115,10 @@ pub fn from_hex<'a>(
         return Err(HexError::LenTooLong { len, max: max_len });
     }
 
-    let hex = hex.as_bytes();
-    let mut index = 2;
-
-    while index < hex.len() && hex[index] == b'0' {
-        index += 1;
-    }
-
     let mut position = bytes.len();
     let mut carry = false;
 
-    for (index, &ch) in hex.iter().enumerate().skip(index).rev() {
+    for (index, &ch) in hex.as_bytes().iter().enumerate().skip(2).rev() {
         let nibble = match ch {
             b'A'..=b'F' => ch - b'A' + 10,
             b'a'..=b'f' => ch - b'a' + 10,
@@ -143,9 +142,5 @@ pub fn from_hex<'a>(
         }
     }
 
-    if position == bytes.len() {
-        position -= 1;
-    }
-
-    Ok(bytes.len() - position)
+    Ok(())
 }

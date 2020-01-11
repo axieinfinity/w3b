@@ -44,7 +44,7 @@ impl<'a> HexVisitor<'a> {
 }
 
 impl<'a, 'de> Visitor<'de> for HexVisitor<'a> {
-    type Value = usize;
+    type Value = ();
 
     #[inline]
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
@@ -56,7 +56,7 @@ impl<'a, 'de> Visitor<'de> for HexVisitor<'a> {
             } else {
                 format!("a length of at most")
             },
-            (self.out.len() << 1) + 2,
+            convert::hex_len(self.out.len()),
         )
     }
 
@@ -75,7 +75,7 @@ impl<'a, 'de> Visitor<'de> for HexVisitor<'a> {
 pub fn deserialize<'de, B: AsMut<[u8]>, D: Deserializer<'de>>(
     mut bytes: B,
     deserializer: D,
-) -> Result<usize, D::Error> {
+) -> Result<(), D::Error> {
     deserializer.deserialize_str(HexVisitor::new(bytes.as_mut()))
 }
 
@@ -83,6 +83,6 @@ pub fn deserialize<'de, B: AsMut<[u8]>, D: Deserializer<'de>>(
 pub fn deserialize_fixed_len<'de, B: AsMut<[u8]>, D: Deserializer<'de>>(
     mut bytes: B,
     deserializer: D,
-) -> Result<usize, D::Error> {
+) -> Result<(), D::Error> {
     deserializer.deserialize_str(HexVisitor::fixed_len(bytes.as_mut()))
 }
