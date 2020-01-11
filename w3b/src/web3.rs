@@ -1,5 +1,5 @@
 use serde::de::DeserializeOwned;
-use w3b_types::{Address, BlockId, BlockNumber, Uint256, Uint64};
+use w3b_types::{Address, BlockId, BlockNumber, Filter, Log, Uint256, Uint64};
 
 use super::{error::Error, json_rpc::Response, provider::Provider};
 
@@ -27,6 +27,11 @@ impl<T: Provider> Web3<T> {
         let block_id = serde_json::to_value(block_id.into().unwrap_or_default()).unwrap();
         self.execute("eth_getBalance", vec![address, block_id])
             .await
+    }
+
+    pub async fn eth_logs(&self, filter: impl Into<Filter>) -> Result<Vec<Log>, Error> {
+        let filter = serde_json::to_value(filter.into()).unwrap();
+        self.execute("eth_getLogs", vec![filter]).await
     }
 
     pub async fn eth_transaction_count(

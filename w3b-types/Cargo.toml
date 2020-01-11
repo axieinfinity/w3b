@@ -24,7 +24,7 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 num-bigint = "0.2.4"
-serde = { version = "1.0.104" }
+serde = { version = "1.0.104", features = ["derive"] }
 w3b-types-abi = { path = "../w3b-types-abi" }
 w3b-types-core = { path = "../w3b-types-core" }
 
