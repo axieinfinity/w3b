@@ -2,145 +2,249 @@ use super::error::HexError;
 
 const HEX_CHARS: &'static [u8] = b"0123456789abcdef";
 
-pub const fn hex_len(num_bytes: usize) -> usize {
-    // 2 hexadecimal digits for each byte and additional 2 for the 0x prefix
-    (num_bytes << 1) + 2
+/// ```rust
+/// # use w3b_types_core::hex::convert::read;
+/// assert_eq!(&read(&[0xf, 0xff, 0xf]), "0xfff0f");
+/// assert_eq!(&read(&[0, 0, 0xf]), "0xf");
+/// assert_eq!(&read(&[0]), "0x0");
+/// assert_eq!(&read(&[]), "0x0");
+/// ```
+#[inline]
+pub fn read(bytes: &[u8]) -> String {
+    let mut hex = String::from("0x");
+    unprefixed::read_into(bytes, &mut hex);
+    hex
 }
 
-/// Converts a slice of bytes to a hexadecimal string.
-///
 /// ```rust
-/// use w3b_types_core::hex::to_hex;
-///
-/// assert_eq!(&to_hex(&[0xf, 0xff, 0xf], false), "0xfff0f");
-/// assert_eq!(&to_hex(&[0, 0, 0x37], false), "0x37");
-/// assert_eq!(&to_hex(&[0, 0, 0xf], false), "0xf");
-/// assert_eq!(&to_hex(&[0x1], false), "0x1");
-///
-/// assert_eq!(&to_hex(&[0xf, 0xff, 0xf], true), "0x0fff0f");
-/// assert_eq!(&to_hex(&[0, 0, 0x37], true), "0x000037");
-/// assert_eq!(&to_hex(&[0, 0, 0xf], true), "0x00000f");
-/// assert_eq!(&to_hex(&[0x1], true), "0x01");
+/// # use w3b_types_core::hex::convert::read_padded;
+/// assert_eq!(&read_padded(&[0xf, 0xff, 0xf], 3), "0x0fff0f");
+/// assert_eq!(&read_padded(&[0xf], 2), "0x000f");
+/// assert_eq!(&read_padded(&[0], 2), "0x0000");
+/// assert_eq!(&read_padded(&[], 2), "0x0000");
 /// ```
-pub fn to_hex(bytes: impl AsRef<[u8]>, fixed_len: bool) -> String {
-    let bytes = bytes.as_ref();
-    let mut index = 0;
-
-    if !fixed_len {
-        while index < bytes.len() && bytes[index] == 0 {
-            index += 1
-        }
-    }
-
-    if index >= bytes.len() {
-        return "0x0".to_owned();
-    }
-
-    let mut out = String::with_capacity(hex_len(bytes.len()));
-    out.push_str("0x");
-
-    if !fixed_len && bytes[index] < 0x10 {
-        unsafe {
-            out.as_mut_vec().push(HEX_CHARS[bytes[index] as usize]);
-        }
-
-        index += 1;
-    }
-
-    for byte in &bytes[index..] {
-        unsafe {
-            out.as_mut_vec().push(HEX_CHARS[(byte >> 4) as usize]);
-            out.as_mut_vec().push(HEX_CHARS[(byte & 0xf) as usize]);
-        }
-    }
-
-    out
+#[inline]
+pub fn read_padded(bytes: &[u8], max_byte_len: usize) -> String {
+    let mut hex = String::from("0x");
+    unprefixed::read_padded_into(bytes, max_byte_len, &mut hex);
+    hex
 }
 
-/// Converts a hexadecimal string to a `Vec` of bytes.
-///
 /// ```rust
-/// use w3b_types_core::hex::{from_hex, HexError};
-///
-/// fn assert_bytes(hex: &str, expected_bytes: &[u8]) {
-///   let mut bytes = [0; 3];
-///   from_hex(hex, false, &mut bytes).unwrap();
-///   assert_eq!(&bytes, expected_bytes);
-/// }
-///
-/// assert_bytes("0x07ff0f", &[0x7, 0xff, 0xf]);
-/// assert_bytes("0x3712", &[0, 0x37, 0x12]);
-/// assert_bytes("0x0000f", &[0, 0, 0xf]);
-/// assert_bytes("0x0000", &[0, 0, 0]);
-///
-/// fn assert_error(hex: &str, exact_len: bool, expected_error: HexError) {
-///   let mut bytes = [0; 3];
-///   let error = from_hex(hex, exact_len, &mut bytes).unwrap_err();
-///   assert_eq!(error, expected_error);
-/// }
-///
-/// assert_error("12345", false, HexError::MissingPrefix);
-/// assert_error("0x", false, HexError::NoDigits);
-/// assert_error("0x001g", false, HexError::InvalidChar { ch: 'g', index: 5 });
-/// assert_error("0x00000", true, HexError::IncorrectLen { len: 7, expected: 8 });
-/// assert_error("0x0000000", false, HexError::LenTooLong { len: 9, max: 8 });
+/// # use w3b_types_core::hex::convert::read_exact;
+/// assert_eq!(read_exact(&[0xf, 0xff, 0xf]), "0x0fff0f");
+/// assert_eq!(read_exact(&[0xf]), "0x0f");
+/// assert_eq!(read_exact(&[0]), "0x00");
+/// assert_eq!(read_exact(&[]), "0x");
 /// ```
-pub fn from_hex<'a>(
-    hex: impl AsRef<str>,
-    fixed_len: bool,
-    mut bytes: impl AsMut<[u8]>,
-) -> Result<(), HexError> {
-    let hex = hex.as_ref();
-    let bytes = bytes.as_mut();
+#[inline]
+pub fn read_exact(bytes: &[u8]) -> String {
+    let mut hex = String::from("0x");
+    unprefixed::read_exact_into(bytes, &mut hex);
+    hex
+}
 
-    if !hex.starts_with("0x") {
-        return Err(HexError::MissingPrefix);
+/// ```rust
+/// # use w3b_types_core::hex::{convert::write_exact, HexError};
+///
+/// assert_eq!(write_exact("0x07ff0f").unwrap(), &[0x7, 0xff, 0xf]);
+/// assert_eq!(write_exact("0x3712").unwrap(), &[0x37, 0x12]);
+/// assert_eq!(write_exact("0x00000f").unwrap(), &[0, 0, 0xf]);
+/// assert_eq!(write_exact("0x0000").unwrap(), &[0, 0]);
+/// assert_eq!(write_exact("0x").unwrap(), &[]);
+///
+/// assert_eq!(write_exact("12345").unwrap_err(), HexError::MissingPrefix);
+/// assert_eq!(write_exact("0x001g").unwrap_err(), HexError::InvalidChar { char: 'g', index: 5 });
+/// assert_eq!(write_exact("0x00000").unwrap_err(), HexError::IncorrectLen { len: 7, expected: 8 });
+/// ```
+#[inline]
+pub fn write_exact(hex: &str) -> Result<Vec<u8>, HexError> {
+    let hex = strip_prefix(hex)?;
+    let mut bytes = vec![0; hex.len() + 1 >> 1];
+    unprefixed::write_exact_into(hex, bytes.as_mut_slice()).map_err(shift_indices)?;
+    Ok(bytes)
+}
+
+#[inline]
+pub fn write_padded_into(hex: &str, max_byte_len: usize, bytes: &mut [u8]) -> Result<(), HexError> {
+    let hex = strip_prefix(hex)?;
+    unprefixed::write_padded_into(hex, max_byte_len, bytes).map_err(shift_indices)
+}
+
+#[inline]
+pub fn write_expanded_into(hex: &str, bytes: &mut [u8]) -> Result<(), HexError> {
+    let hex = strip_prefix(hex)?;
+    unprefixed::write_expanded_into(hex, bytes).map_err(shift_indices)
+}
+
+#[inline]
+pub fn write_exact_into(hex: &str, bytes: &mut [u8]) -> Result<(), HexError> {
+    let hex = strip_prefix(hex)?;
+    unprefixed::write_exact_into(hex, bytes).map_err(shift_indices)
+}
+
+#[inline]
+fn strip_prefix(hex: &str) -> Result<&str, HexError> {
+    if hex.starts_with("0x") {
+        Ok(&hex[2..])
+    } else {
+        Err(HexError::MissingPrefix)
+    }
+}
+
+fn shift_indices(error: HexError) -> HexError {
+    use HexError::*;
+
+    match error {
+        InvalidChar { char, index } => InvalidChar {
+            char,
+            index: index + 2,
+        },
+
+        IncorrectLen { len, expected } => IncorrectLen {
+            len: len + 2,
+            expected: expected + 2,
+        },
+
+        LenTooLong { len, max } => LenTooLong {
+            len: len + 2,
+            max: max + 2,
+        },
+
+        _ => error,
+    }
+}
+
+pub mod unprefixed {
+    use super::HEX_CHARS;
+    use crate::hex::HexError;
+
+    #[inline]
+    pub fn read(bytes: &[u8]) -> String {
+        let mut hex = String::new();
+        read_into(bytes, &mut hex);
+        hex
     }
 
-    if hex.len() <= 2 {
-        return Err(HexError::NoDigits);
+    #[inline]
+    pub fn read_padded(bytes: &[u8], len: usize) -> String {
+        let mut hex = String::new();
+        read_padded_into(bytes, len, &mut hex);
+        hex
     }
 
-    let len = hex.len();
-    let max_len = hex_len(bytes.len());
-
-    if fixed_len && len != max_len {
-        return Err(HexError::IncorrectLen {
-            len,
-            expected: max_len,
-        });
+    #[inline]
+    pub fn read_exact(bytes: &[u8]) -> String {
+        let mut hex = String::new();
+        read_exact_into(bytes, &mut hex);
+        hex
     }
 
-    if len > max_len {
-        return Err(HexError::LenTooLong { len, max: max_len });
-    }
+    pub(super) fn read_into(mut bytes: &[u8], hex: &mut String) {
+        while !bytes.is_empty() && bytes[0] == 0 {
+            bytes = &bytes[1..];
+        }
 
-    let mut position = bytes.len();
-    let mut carry = false;
+        if !bytes.is_empty() {
+            if bytes[0] <= 0xf {
+                unsafe {
+                    hex.as_mut_vec().push(HEX_CHARS[bytes[0] as usize]);
+                }
 
-    for (index, &ch) in hex.as_bytes().iter().enumerate().skip(2).rev() {
-        let nibble = match ch {
-            b'A'..=b'F' => ch - b'A' + 10,
-            b'a'..=b'f' => ch - b'a' + 10,
-            b'0'..=b'9' => ch - b'0',
-
-            _ => {
-                return Err(HexError::InvalidChar {
-                    ch: ch.into(),
-                    index,
-                });
+                bytes = &bytes[1..];
             }
-        };
 
-        if carry {
-            bytes[position] |= nibble << 4;
-            carry = false;
+            read_exact_into(bytes, hex);
         } else {
-            position -= 1;
-            bytes[position] = nibble;
-            carry = true;
+            hex.push('0');
         }
     }
 
-    Ok(())
+    pub fn read_padded_into(bytes: &[u8], max_byte_len: usize, hex: &mut String) {
+        assert!(bytes.len() <= max_byte_len, "maximum byte length exceeded");
+
+        for _ in 0..max_byte_len - bytes.len() {
+            hex.push_str("00");
+        }
+
+        for byte in bytes {
+            unsafe {
+                hex.as_mut_vec().push(HEX_CHARS[(byte >> 4) as usize]);
+                hex.as_mut_vec().push(HEX_CHARS[(byte & 0xf) as usize]);
+            }
+        }
+    }
+
+    #[inline]
+    pub fn read_exact_into(bytes: &[u8], hex: &mut String) {
+        read_padded_into(bytes, bytes.len(), hex)
+    }
+
+    pub fn write_padded_into(
+        hex: &str,
+        max_byte_len: usize,
+        mut bytes: &mut [u8],
+    ) -> Result<(), HexError> {
+        assert!(max_byte_len <= bytes.len(), "output byte length exceeded");
+
+        let padding_byte_len =
+            max_byte_len
+                .checked_sub(hex.len() + 1 >> 1)
+                .ok_or(HexError::LenTooLong {
+                    len: hex.len(),
+                    max: max_byte_len << 1,
+                })?;
+
+        for _ in 0..padding_byte_len {
+            bytes[0] = 0;
+            bytes = &mut bytes[1..];
+        }
+
+        let mut byte = 0;
+        let mut carry = hex.len() % 2 == 1;
+
+        for (index, &char) in hex.as_bytes().iter().enumerate() {
+            byte <<= 4;
+
+            match char {
+                b'A'..=b'F' => byte |= char - b'A' + 10,
+                b'a'..=b'f' => byte |= char - b'a' + 10,
+                b'0'..=b'9' => byte |= char - b'0',
+
+                _ => {
+                    return Err(HexError::InvalidChar {
+                        char: char.into(),
+                        index,
+                    });
+                }
+            }
+
+            if carry {
+                bytes[0] = byte;
+                bytes = &mut bytes[1..];
+            }
+
+            carry = !carry;
+        }
+
+        Ok(())
+    }
+
+    #[inline]
+    pub fn write_expanded_into(hex: &str, bytes: &mut [u8]) -> Result<(), HexError> {
+        write_padded_into(hex, bytes.len(), bytes)
+    }
+
+    pub fn write_exact_into(hex: &str, bytes: &mut [u8]) -> Result<(), HexError> {
+        let expected_hex_len = bytes.len() << 1;
+
+        if hex.len() == expected_hex_len {
+            write_expanded_into(hex, bytes)
+        } else {
+            Err(HexError::IncorrectLen {
+                len: hex.len(),
+                expected: expected_hex_len,
+            })
+        }
+    }
 }

@@ -1,4 +1,4 @@
-mod convert;
+pub mod convert;
 mod error;
 mod serde;
 

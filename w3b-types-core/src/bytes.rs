@@ -30,7 +30,7 @@ macro_rules! impl_bytes {
             #[inline]
             pub fn from_hex(hex: impl AsRef<str>) -> Result<Self, $crate::hex::HexError> {
                 let mut repr = [0; Self::NUM_BYTES];
-                $crate::hex::from_hex(hex, true, &mut repr)?;
+                $crate::hex::write_exact_into(hex.as_ref(), &mut repr)?;
                 Ok(Self(repr))
             }
 
@@ -46,14 +46,14 @@ macro_rules! impl_bytes {
 
             #[inline]
             pub fn to_hex(&self) -> String {
-                $crate::hex::to_hex(self.as_bytes(), true)
+                $crate::hex::read_exact(self.as_bytes())
             }
         }
 
         impl ::std::fmt::LowerHex for $bytes {
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
-                let skip_prefix = (1 - f.alternate() as usize) << 1;
-                write!(f, "{}", &self.to_hex()[skip_prefix..])
+                let prefix_skip = (1 - f.alternate() as usize) << 1;
+                write!(f, "{}", &self.to_hex()[prefix_skip..])
             }
         }
 
@@ -70,7 +70,7 @@ macro_rules! impl_bytes {
                 &self,
                 serializer: S,
             ) -> Result<S::Ok, S::Error> {
-                $crate::hex::serialize_fixed_len(&self.0, serializer)
+                $crate::hex::serialize_exact(&self.0, serializer)
             }
         }
 

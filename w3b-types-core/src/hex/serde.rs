@@ -5,41 +5,32 @@ use serde::{de, de::Visitor, Deserializer, Serializer};
 use super::{convert, error::HexError};
 
 #[inline]
-pub fn serialize<B: AsRef<[u8]>, S: Serializer>(
-    bytes: B,
-    serializer: S,
-) -> Result<S::Ok, S::Error> {
-    serializer.serialize_str(&convert::to_hex(bytes, false))
+pub fn serialize<S: Serializer>(bytes: &[u8], serializer: S) -> Result<S::Ok, S::Error> {
+    serializer.serialize_str(&convert::read(bytes))
 }
 
 #[inline]
-pub fn serialize_fixed_len<B: AsRef<[u8]>, S: Serializer>(
-    bytes: B,
-    serializer: S,
-) -> Result<S::Ok, S::Error> {
-    serializer.serialize_str(&convert::to_hex(bytes, true))
+pub fn serialize_exact<S: Serializer>(bytes: &[u8], serializer: S) -> Result<S::Ok, S::Error> {
+    serializer.serialize_str(&convert::read_exact(bytes))
 }
 
 pub struct HexVisitor<'a> {
-    fixed_len: bool,
-    out: &'a mut [u8],
+    exact: bool,
+    bytes: &'a mut [u8],
 }
 
 impl<'a> HexVisitor<'a> {
     #[inline]
-    pub fn new(out: &'a mut [u8]) -> Self {
+    pub fn new(bytes: &'a mut [u8]) -> Self {
         Self {
-            fixed_len: false,
-            out,
+            exact: false,
+            bytes,
         }
     }
 
     #[inline]
-    pub fn fixed_len(out: &'a mut [u8]) -> Self {
-        Self {
-            fixed_len: true,
-            out,
-        }
+    pub fn exact(bytes: &'a mut [u8]) -> Self {
+        Self { exact: true, bytes }
     }
 }
 
@@ -51,17 +42,22 @@ impl<'a, 'de> Visitor<'de> for HexVisitor<'a> {
         write!(
             formatter,
             "a 0x-prefixed hexadecimal string with {} {}",
-            if self.fixed_len {
+            if self.exact {
                 format!("a fixed length of")
             } else {
                 format!("a length of at most")
             },
-            convert::hex_len(self.out.len()),
+            self.bytes.len() << 1,
         )
     }
 
     fn visit_str<E: de::Error>(self, v: &str) -> Result<Self::Value, E> {
-        convert::from_hex(v, self.fixed_len, &mut *self.out).map_err(|error| match error {
+        if self.exact {
+            convert::write_exact_into(v, self.bytes)
+        } else {
+            convert::write_expanded_into(v, self.bytes)
+        }
+        .map_err(|error| match error {
             HexError::IncorrectLen { len, .. } | HexError::LenTooLong { len, .. } => {
                 E::invalid_length(len, &self)
             }
@@ -84,5 +80,5 @@ pub fn deserialize_fixed_len<'de, B: AsMut<[u8]>, D: Deserializer<'de>>(
     mut bytes: B,
     deserializer: D,
 ) -> Result<(), D::Error> {
-    deserializer.deserialize_str(HexVisitor::fixed_len(bytes.as_mut()))
+    deserializer.deserialize_str(HexVisitor::exact(bytes.as_mut()))
 }

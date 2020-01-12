@@ -4,26 +4,30 @@ use std::{error::Error, fmt};
 pub enum HexError {
     MissingPrefix,
     NoDigits,
-    InvalidChar { ch: char, index: usize },
+    InvalidChar { char: char, index: usize },
     IncorrectLen { len: usize, expected: usize },
     LenTooLong { len: usize, max: usize },
 }
 
 impl fmt::Debug for HexError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        use HexError::*;
+
         match self {
-            HexError::MissingPrefix => write!(f, "missing 0x prefix"),
-            HexError::NoDigits => write!(f, "missing hexadecimal digits"),
+            MissingPrefix => write!(f, "missing 0x prefix"),
+            NoDigits => write!(f, "missing hexadecimal digits"),
 
-            HexError::InvalidChar { ch, index } => {
-                write!(f, "invalid hexadecimal character {} at index {}", ch, index)
-            }
+            InvalidChar { char, index } => write!(
+                f,
+                "invalid hexadecimal character {} at index {}",
+                char, index
+            ),
 
-            HexError::IncorrectLen { len, expected } => {
+            IncorrectLen { len, expected } => {
                 write!(f, "incorrect length at {}, expected {}", len, expected)
             }
 
-            HexError::LenTooLong { len, max } => {
+            LenTooLong { len, max } => {
                 write!(f, "length too long at {}, expected at most {}", len, max)
             }
         }
