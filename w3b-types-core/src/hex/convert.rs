@@ -3,7 +3,7 @@ use super::error::HexError;
 const HEX_CHARS: &'static [u8] = b"0123456789abcdef";
 
 /// ```rust
-/// # use w3b_types_core::hex::convert::read;
+/// # use w3b_types_core::hex::read;
 /// assert_eq!(&read(&[0xf, 0xff, 0xf]), "0xfff0f");
 /// assert_eq!(&read(&[0, 0, 0xf]), "0xf");
 /// assert_eq!(&read(&[0]), "0x0");
@@ -17,7 +17,7 @@ pub fn read(bytes: &[u8]) -> String {
 }
 
 /// ```rust
-/// # use w3b_types_core::hex::convert::read_padded;
+/// # use w3b_types_core::hex::read_padded;
 /// assert_eq!(&read_padded(&[0xf, 0xff, 0xf], 3), "0x0fff0f");
 /// assert_eq!(&read_padded(&[0xf], 2), "0x000f");
 /// assert_eq!(&read_padded(&[0], 2), "0x0000");
@@ -31,7 +31,7 @@ pub fn read_padded(bytes: &[u8], max_byte_len: usize) -> String {
 }
 
 /// ```rust
-/// # use w3b_types_core::hex::convert::read_exact;
+/// # use w3b_types_core::hex::read_exact;
 /// assert_eq!(read_exact(&[0xf, 0xff, 0xf]), "0x0fff0f");
 /// assert_eq!(read_exact(&[0xf]), "0x0f");
 /// assert_eq!(read_exact(&[0]), "0x00");
@@ -45,7 +45,7 @@ pub fn read_exact(bytes: &[u8]) -> String {
 }
 
 /// ```rust
-/// # use w3b_types_core::hex::{convert::write_exact, HexError};
+/// # use w3b_types_core::hex::{write_exact, HexError};
 ///
 /// assert_eq!(write_exact("0x07ff0f").unwrap(), &[0x7, 0xff, 0xf]);
 /// assert_eq!(write_exact("0x3712").unwrap(), &[0x37, 0x12]);
@@ -62,6 +62,28 @@ pub fn write_exact(hex: &str) -> Result<Vec<u8>, HexError> {
     let hex = strip_prefix(hex)?;
     let mut bytes = vec![0; hex.len() + 1 >> 1];
     unprefixed::write_exact_into(hex, bytes.as_mut_slice()).map_err(shift_indices)?;
+    Ok(bytes)
+}
+
+/// ```rust
+/// # use w3b_types_core::hex::{write_padded, HexError};
+///
+/// assert_eq!(write_padded("0x7ff0f", 4).unwrap(), &[0, 0x7, 0xff, 0xf]);
+/// assert_eq!(write_padded("0x3712", 3).unwrap(), &[0, 0x37, 0x12]);
+/// assert_eq!(write_padded("0xf", 3).unwrap(), &[0, 0, 0xf]);
+/// assert_eq!(write_padded("0x0000", 3).unwrap(), &[0, 0, 0]);
+/// assert_eq!(write_padded("0x", 0).unwrap(), &[]);
+///
+/// assert_eq!(write_padded("0x", 1).unwrap_err(), HexError::NoDigits);
+/// ```
+#[inline]
+pub fn write_padded(hex: &str, max_byte_len: usize) -> Result<Vec<u8>, HexError> {
+    let hex = strip_prefix(hex)?;
+    let mut bytes = vec![0; max_byte_len];
+
+    unprefixed::write_padded_into(hex, max_byte_len, bytes.as_mut_slice())
+        .map_err(shift_indices)?;
+
     Ok(bytes)
 }
 
@@ -186,6 +208,10 @@ pub mod unprefixed {
         mut bytes: &mut [u8],
     ) -> Result<(), HexError> {
         assert!(max_byte_len <= bytes.len(), "output byte length exceeded");
+
+        if max_byte_len > 0 && hex.is_empty() {
+            return Err(HexError::NoDigits);
+        }
 
         let padding_byte_len =
             max_byte_len
