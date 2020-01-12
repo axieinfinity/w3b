@@ -14,24 +14,10 @@ pub fn serialize_exact<S: Serializer>(bytes: &[u8], serializer: S) -> Result<S::
     serializer.serialize_str(&convert::read_exact(bytes))
 }
 
-pub struct HexVisitor<'a> {
-    exact: bool,
-    bytes: &'a mut [u8],
-}
-
-impl<'a> HexVisitor<'a> {
-    #[inline]
-    pub fn new(bytes: &'a mut [u8]) -> Self {
-        Self {
-            exact: false,
-            bytes,
-        }
-    }
-
-    #[inline]
-    pub fn exact(bytes: &'a mut [u8]) -> Self {
-        Self { exact: true, bytes }
-    }
+pub enum HexVisitor<'a> {
+    Bytes(&'a mut Option<Vec<u8>>),
+    Expanded(&'a mut [u8]),
+    Exact(&'a mut [u8]),
 }
 
 impl<'a, 'de> Visitor<'de> for HexVisitor<'a> {
@@ -39,23 +25,24 @@ impl<'a, 'de> Visitor<'de> for HexVisitor<'a> {
 
     #[inline]
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        write!(
-            formatter,
-            "a 0x-prefixed hexadecimal string with {} {}",
-            if self.exact {
-                format!("a fixed length of")
-            } else {
-                format!("a length of at most")
-            },
-            self.bytes.len() << 1,
-        )
+        use HexVisitor::*;
+
+        write!(formatter, "a 0x-prefixed hexadecimal string")?;
+
+        match self {
+            Expanded(bytes) => write!(formatter, " with a length of at most {}", bytes.len() << 1),
+            Exact(bytes) => write!(formatter, " with an exact length of {}", bytes.len() << 1),
+            Bytes(_) => Ok(()),
+        }
     }
 
-    fn visit_str<E: de::Error>(self, v: &str) -> Result<Self::Value, E> {
-        if self.exact {
-            convert::write_exact_into(v, self.bytes)
-        } else {
-            convert::write_expanded_into(v, self.bytes)
+    fn visit_str<E: de::Error>(mut self, v: &str) -> Result<Self::Value, E> {
+        use HexVisitor::*;
+
+        match &mut self {
+            Expanded(bytes) => convert::write_expanded_into(v, *bytes),
+            Exact(bytes) => convert::write_exact_into(v, *bytes),
+            Bytes(maybe_bytes) => convert::write_exact(v).map(|bytes| **maybe_bytes = Some(bytes)),
         }
         .map_err(|error| match error {
             HexError::IncorrectLen { len, .. } | HexError::LenTooLong { len, .. } => {
@@ -68,17 +55,24 @@ impl<'a, 'de> Visitor<'de> for HexVisitor<'a> {
 }
 
 #[inline]
-pub fn deserialize<'de, B: AsMut<[u8]>, D: Deserializer<'de>>(
-    mut bytes: B,
-    deserializer: D,
-) -> Result<(), D::Error> {
-    deserializer.deserialize_str(HexVisitor::new(bytes.as_mut()))
+pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Vec<u8>, D::Error> {
+    let mut maybe_bytes = None;
+    deserializer.deserialize_str(HexVisitor::Bytes(&mut maybe_bytes))?;
+    Ok(maybe_bytes.unwrap())
 }
 
 #[inline]
-pub fn deserialize_fixed_len<'de, B: AsMut<[u8]>, D: Deserializer<'de>>(
-    mut bytes: B,
+pub fn deserialize_expanded<'de, D: Deserializer<'de>>(
+    bytes: &mut [u8],
     deserializer: D,
 ) -> Result<(), D::Error> {
-    deserializer.deserialize_str(HexVisitor::exact(bytes.as_mut()))
+    deserializer.deserialize_str(HexVisitor::Expanded(bytes))
+}
+
+#[inline]
+pub fn deserialize_exact<'de, D: Deserializer<'de>>(
+    bytes: &mut [u8],
+    deserializer: D,
+) -> Result<(), D::Error> {
+    deserializer.deserialize_str(HexVisitor::Exact(bytes))
 }

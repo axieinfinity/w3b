@@ -51,6 +51,7 @@ macro_rules! impl_bytes {
         }
 
         impl ::std::fmt::LowerHex for $bytes {
+            #[inline]
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                 let prefix_skip = (1 - f.alternate() as usize) << 1;
                 write!(f, "{}", &self.to_hex()[prefix_skip..])
@@ -58,6 +59,7 @@ macro_rules! impl_bytes {
         }
 
         impl ::std::fmt::UpperHex for $bytes {
+            #[inline]
             fn fmt(&self, f: &mut ::std::fmt::Formatter) -> ::std::fmt::Result {
                 let prefix = "0x".repeat(f.alternate() as usize);
                 write!(f, "{}{}", prefix, &self.to_hex().to_uppercase()[2..])
@@ -80,7 +82,7 @@ macro_rules! impl_bytes {
                 deserializer: D,
             ) -> Result<Self, D::Error> {
                 let mut repr = [0; Self::NUM_BYTES];
-                $crate::hex::deserialize_fixed_len(&mut repr, deserializer)?;
+                $crate::hex::deserialize_exact(&mut repr, deserializer)?;
                 Ok(Self(repr))
             }
         }

@@ -1,4 +1,76 @@
-use w3b_types_core::impl_bytes;
+use std::fmt;
+
+use w3b_types_core::{
+    hex,
+    hex::HexError,
+    impl_bytes,
+    serde::{Deserialize, Deserializer, Serialize, Serializer},
+};
+
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub struct Bytes(Vec<u8>);
+
+impl Bytes {
+    #[inline]
+    pub fn new(bytes: Vec<u8>) -> Self {
+        Self(bytes)
+    }
+
+    #[inline]
+    pub fn from_bytes(bytes: impl AsRef<[u8]>) -> Self {
+        Self(bytes.as_ref().into())
+    }
+
+    #[inline]
+    pub fn from_hex(hex: impl AsRef<str>) -> Result<Self, HexError> {
+        hex::write_exact(hex.as_ref()).map(Self)
+    }
+
+    #[inline]
+    pub fn as_bytes(&self) -> &[u8] {
+        self.0.as_ref()
+    }
+
+    #[inline]
+    pub fn to_hex(&self) -> String {
+        hex::read_exact(self.as_bytes())
+    }
+
+    #[inline]
+    pub fn into_vec(self) -> Vec<u8> {
+        self.0
+    }
+}
+
+impl fmt::LowerHex for Bytes {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let prefix_skip = (1 - f.alternate() as usize) << 1;
+        write!(f, "{}", &self.to_hex()[prefix_skip..])
+    }
+}
+
+impl fmt::UpperHex for Bytes {
+    #[inline]
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let prefix = "0x".repeat(f.alternate() as usize);
+        write!(f, "{}{}", prefix, &self.to_hex().to_uppercase()[2..])
+    }
+}
+
+impl Serialize for Bytes {
+    #[inline]
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        hex::serialize_exact(&self.0, serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for Bytes {
+    #[inline]
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        hex::deserialize(deserializer).map(Self)
+    }
+}
 
 pub type Byte = Bytes1;
 

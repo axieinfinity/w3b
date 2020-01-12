@@ -24,7 +24,7 @@ impl<'de> Deserialize<'de> for BlockNumber {
     #[inline]
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let mut bytes = [0; 8];
-        hex::deserialize(&mut bytes, deserializer)?;
+        hex::deserialize_expanded(&mut bytes, deserializer)?;
         Ok(Self(u64::from_be_bytes(bytes)))
     }
 }
@@ -92,7 +92,7 @@ impl<'de> Deserialize<'de> for BlockId {
                     "pending" => Ok(BlockId::Pending),
                     _ => {
                         let mut bytes = [0; 8];
-                        let visitor = HexVisitor::new(&mut bytes);
+                        let visitor = HexVisitor::Expanded(&mut bytes);
                         visitor.visit_str(v)?;
                         Ok(BlockId::Number(BlockNumber(u64::from_be_bytes(bytes))))
                     }
