@@ -8,6 +8,9 @@ fn main() -> io::Result<()> {
     let mut file = File::create(path).unwrap();
 
     writeln!(file, "use w3b_types_core::impl_num;")?;
+    writeln!(file)?;
+    writeln!(file, "pub type Int = Int256;")?;
+    writeln!(file, "pub type Uint = Uint256;")?;
 
     for size in (8..=256).step_by(8) {
         writeln!(file)?;

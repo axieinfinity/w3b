@@ -9,6 +9,8 @@ fn main() -> io::Result<()> {
 
     writeln!(file, "use w3b_types_core::impl_bytes;")?;
     writeln!(file)?;
+    writeln!(file, "pub type Byte = Bytes1;")?;
+    writeln!(file)?;
 
     for size in 1..=32 {
         writeln!(file, "impl_bytes!(Bytes{0}; size = {0});", size)?;

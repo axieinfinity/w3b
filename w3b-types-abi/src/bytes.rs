@@ -1,5 +1,7 @@
 use w3b_types_core::impl_bytes;
 
+pub type Byte = Bytes1;
+
 impl_bytes!(Bytes1; size = 1);
 impl_bytes!(Bytes2; size = 2);
 impl_bytes!(Bytes3; size = 3);

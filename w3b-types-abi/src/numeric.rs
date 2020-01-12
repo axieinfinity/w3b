@@ -1,5 +1,8 @@
 use w3b_types_core::impl_num;
 
+pub type Int = Int256;
+pub type Uint = Uint256;
+
 impl_num! {
     Int8;
     @int, size = 1;
