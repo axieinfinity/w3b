@@ -22,6 +22,9 @@ is-it-maintained-issue-resolution = { repository = "skymavis/w3b" }
 is-it-maintained-open-issues = { repository = "skymavis/w3b" }
 maintenance = { status = "actively-developed" }
 
+[build-dependencies]
+autocfg = "0.1.7"
+
 [dependencies]
 num-bigint = "0.2.4"
 serde = { version = "1.0.104", features = ["derive"] }
