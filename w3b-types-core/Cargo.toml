@@ -8,7 +8,7 @@ license = "MIT"
 homepage = "https://github.com/skymavis/w3b"
 repository = "https://github.com/skymavis/w3b"
 categories = ["data-structures"]
-keywords = ["web3", "api", "ethereum"]
+keywords = ["web3", "type", "utility", "ethereum"]
 include = ["src/**/*", "LICENSE", "README.md"]
 readme = "README.md"
 
