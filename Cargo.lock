@@ -840,6 +840,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "w3b-abi"
+version = "0.1.0"
+dependencies = [
+ "w3b-types-abi 0.1.0",
+]
+
+[[package]]
 name = "w3b-types"
 version = "0.1.0"
 dependencies = [
