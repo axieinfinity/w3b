@@ -7,6 +7,7 @@ pub trait Provider {
 
     fn send(&self, request: Request) -> Self::Response;
 
+    #[inline]
     fn execute(&self, method: &str, params: Vec<serde_json::Value>) -> Self::Response {
         self.send(Request::new(method.to_owned(), params))
     }

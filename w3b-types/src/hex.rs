@@ -1,6 +1,6 @@
-pub struct HexNumeric<T>(T);
+pub struct Hex<T>(T);
 
-impl<T> HexNumeric<T> {
+impl<T> Hex<T> {
     #[inline]
     pub fn new(inner: T) -> Self {
         Self(inner)
@@ -12,7 +12,7 @@ impl<T> HexNumeric<T> {
     }
 }
 
-impl<T> From<T> for HexNumeric<T> {
+impl<T> From<T> for Hex<T> {
     #[inline]
     fn from(value: T) -> Self {
         Self(value)
@@ -21,7 +21,7 @@ impl<T> From<T> for HexNumeric<T> {
 
 macro_rules! impl_num {
     ($num:ident) => {
-        impl $crate::serde::Serialize for HexNumeric<$num> {
+        impl $crate::serde::Serialize for Hex<$num> {
             #[inline]
             fn serialize<S: $crate::serde::Serializer>(
                 &self,
@@ -31,7 +31,7 @@ macro_rules! impl_num {
             }
         }
 
-        impl<'de> $crate::serde::Deserialize<'de> for HexNumeric<$num> {
+        impl<'de> $crate::serde::Deserialize<'de> for Hex<$num> {
             #[inline]
             fn deserialize<D: $crate::serde::Deserializer<'de>>(
                 deserializer: D,

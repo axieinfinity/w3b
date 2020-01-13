@@ -1,5 +1,5 @@
 use serde::de::DeserializeOwned;
-use w3b_types::{Address, BlockNumber, Filter, HexNumeric, Log, Uint256, Uint64};
+use w3b_types::{Address, BlockNumber, Filter, Hex, Log, Uint256, Uint64};
 
 use super::{error::Error, json_rpc::Response, provider::Provider};
 
@@ -8,6 +8,7 @@ pub struct Web3<T: Provider> {
 }
 
 impl<T: Provider> Web3<T> {
+    #[inline]
     pub fn new(provider: T) -> Self {
         Self { provider }
     }
@@ -15,9 +16,9 @@ impl<T: Provider> Web3<T> {
 
 impl<T: Provider> Web3<T> {
     pub async fn eth_block_number(&self) -> Result<u64, Error> {
-        self.execute::<HexNumeric<u64>>("eth_blockNumber", vec![])
+        self.execute("eth_blockNumber", vec![])
             .await
-            .map(HexNumeric::inner)
+            .map(Hex::inner)
     }
 
     pub async fn eth_balance(

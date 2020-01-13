@@ -3,7 +3,7 @@ use std::fmt;
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
 use w3b_types_core::hex::HexVisitor;
 
-use super::numeric::HexNumeric;
+use super::hex::Hex;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum BlockNumber {
@@ -42,9 +42,7 @@ impl Serialize for BlockNumber {
             BlockNumber::Earliest => serializer.serialize_str("earliest"),
             BlockNumber::Latest => serializer.serialize_str("latest"),
             BlockNumber::Pending => serializer.serialize_str("pending"),
-            BlockNumber::Number(block_number) => {
-                HexNumeric::new(*block_number).serialize(serializer)
-            }
+            BlockNumber::Number(block_number) => Hex::new(*block_number).serialize(serializer),
         }
     }
 }
