@@ -1,5 +1,5 @@
 use serde::de::DeserializeOwned;
-use w3b_types::{Address, BlockId, BlockNumber, Filter, Log, Uint256, Uint64};
+use w3b_types::{Address, BlockNumber, Filter, HexNumeric, Log, Uint256, Uint64};
 
 use super::{error::Error, json_rpc::Response, provider::Provider};
 
@@ -14,18 +14,20 @@ impl<T: Provider> Web3<T> {
 }
 
 impl<T: Provider> Web3<T> {
-    pub async fn eth_block_number(&self) -> Result<BlockNumber, Error> {
-        self.execute("eth_blockNumber", vec![]).await
+    pub async fn eth_block_number(&self) -> Result<u64, Error> {
+        self.execute::<HexNumeric<u64>>("eth_blockNumber", vec![])
+            .await
+            .map(HexNumeric::inner)
     }
 
     pub async fn eth_balance(
         &self,
         address: impl Into<Address>,
-        block_id: impl Into<Option<BlockId>>,
+        block_number: impl Into<Option<BlockNumber>>,
     ) -> Result<Uint256, Error> {
         let address = serde_json::to_value(address.into()).unwrap();
-        let block_id = serde_json::to_value(block_id.into().unwrap_or_default()).unwrap();
-        self.execute("eth_getBalance", vec![address, block_id])
+        let block_number = serde_json::to_value(block_number.into().unwrap_or_default()).unwrap();
+        self.execute("eth_getBalance", vec![address, block_number])
             .await
     }
 
@@ -37,11 +39,11 @@ impl<T: Provider> Web3<T> {
     pub async fn eth_transaction_count(
         &self,
         address: impl Into<Address>,
-        block_id: impl Into<Option<BlockId>>,
+        block_number: impl Into<Option<BlockNumber>>,
     ) -> Result<Uint64, Error> {
         let address = serde_json::to_value(address.into()).unwrap();
-        let block_id = serde_json::to_value(block_id.into().unwrap_or_default()).unwrap();
-        self.execute("eth_getTransactionCount", vec![address, block_id])
+        let block_number = serde_json::to_value(block_number.into().unwrap_or_default()).unwrap();
+        self.execute("eth_getTransactionCount", vec![address, block_number])
             .await
     }
 

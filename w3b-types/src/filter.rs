@@ -1,7 +1,7 @@
 use serde::Serialize;
 use w3b_types_abi::{Address, Bytes32};
 
-use super::block::BlockId;
+use super::block::BlockNumber;
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -17,8 +17,8 @@ pub struct Filter {
 pub enum FilterBlocks {
     #[serde(rename_all = "camelCase")]
     Range {
-        from_block: Option<BlockId>,
-        to_block: Option<BlockId>,
+        from_block: Option<BlockNumber>,
+        to_block: Option<BlockNumber>,
     },
     Hash {
         blockhash: Bytes32,

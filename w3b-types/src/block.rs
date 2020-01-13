@@ -1,81 +1,61 @@
 use std::fmt;
 
 use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
-use w3b_types_core::hex::{self, HexVisitor};
+use w3b_types_core::hex::HexVisitor;
+
+use super::numeric::HexNumeric;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub struct BlockNumber(u64);
+pub enum BlockNumber {
+    Earliest,
+    Latest,
+    Pending,
+    Number(u64),
+}
 
-impl From<u64> for BlockNumber {
+impl Default for BlockNumber {
     #[inline]
-    fn from(value: u64) -> Self {
-        BlockNumber(value)
+    fn default() -> Self {
+        BlockNumber::Latest
     }
 }
 
+macro_rules! impl_from_num {
+    ($num:ident) => {
+        impl From<$num> for BlockNumber {
+            #[inline]
+            fn from(value: $num) -> Self {
+                BlockNumber::Number(value as u64)
+            }
+        }
+    };
+}
+
+impl_from_num!(u8);
+impl_from_num!(u16);
+impl_from_num!(u32);
+impl_from_num!(u64);
+
 impl Serialize for BlockNumber {
-    #[inline]
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        hex::serialize(self.0.to_be_bytes().as_ref(), serializer)
+        match self {
+            BlockNumber::Earliest => serializer.serialize_str("earliest"),
+            BlockNumber::Latest => serializer.serialize_str("latest"),
+            BlockNumber::Pending => serializer.serialize_str("pending"),
+            BlockNumber::Number(block_number) => {
+                HexNumeric::new(*block_number).serialize(serializer)
+            }
+        }
     }
 }
 
 impl<'de> Deserialize<'de> for BlockNumber {
     #[inline]
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        let mut bytes = [0; 8];
-        hex::deserialize_expanded(&mut bytes, deserializer)?;
-        Ok(Self(u64::from_be_bytes(bytes)))
-    }
-}
-
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum BlockId {
-    Earliest,
-    Latest,
-    Pending,
-    Number(BlockNumber),
-}
-
-impl Default for BlockId {
-    #[inline]
-    fn default() -> Self {
-        BlockId::Latest
-    }
-}
-
-impl From<BlockNumber> for BlockId {
-    #[inline]
-    fn from(value: BlockNumber) -> Self {
-        BlockId::Number(value)
-    }
-}
-
-impl From<u64> for BlockId {
-    #[inline]
-    fn from(value: u64) -> Self {
-        BlockId::Number(BlockNumber(value))
-    }
-}
-
-impl Serialize for BlockId {
-    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
-        match self {
-            BlockId::Earliest => serializer.serialize_str("earliest"),
-            BlockId::Latest => serializer.serialize_str("latest"),
-            BlockId::Pending => serializer.serialize_str("pending"),
-            BlockId::Number(block_number) => block_number.serialize(serializer),
-        }
-    }
-}
-
-impl<'de> Deserialize<'de> for BlockId {
-    #[inline]
-    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         struct Visitor;
 
         impl<'de> de::Visitor<'de> for Visitor {
-            type Value = BlockId;
+            type Value = BlockNumber;
 
             #[inline]
             fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
@@ -86,17 +66,17 @@ impl<'de> Deserialize<'de> for BlockId {
             }
 
             fn visit_str<E: de::Error>(self, v: &str) -> Result<Self::Value, E> {
-                match v {
-                    "earliest" => Ok(BlockId::Earliest),
-                    "latest" => Ok(BlockId::Latest),
-                    "pending" => Ok(BlockId::Pending),
+                Ok(match v {
+                    "earliest" => BlockNumber::Earliest,
+                    "latest" => BlockNumber::Latest,
+                    "pending" => BlockNumber::Pending,
                     _ => {
-                        let mut bytes = [0; 8];
+                        let mut bytes = [0; std::mem::size_of::<u64>()];
                         let visitor = HexVisitor::Expanded(&mut bytes);
                         visitor.visit_str(v)?;
-                        Ok(BlockId::Number(BlockNumber(u64::from_be_bytes(bytes))))
+                        BlockNumber::Number(u64::from_be_bytes(bytes))
                     }
-                }
+                })
             }
         }
 
@@ -106,22 +86,17 @@ impl<'de> Deserialize<'de> for BlockId {
 
 #[cfg(test)]
 mod tests {
-    use super::{BlockId, BlockNumber};
+    use super::BlockNumber;
 
     #[test]
     fn serialize() {
         assert_eq!(
-            serde_json::to_string(&BlockNumber(0x6789)).unwrap(),
-            "\"0x6789\"",
-        );
-
-        assert_eq!(
-            serde_json::to_string(&BlockId::Latest).unwrap(),
+            serde_json::to_string(&BlockNumber::Latest).unwrap(),
             "\"latest\"",
         );
 
         assert_eq!(
-            serde_json::to_string(&BlockId::Number(BlockNumber(0x1_000_000_000_000))).unwrap(),
+            serde_json::to_string(&BlockNumber::Number(0x1_000_000_000_000)).unwrap(),
             "\"0x1000000000000\"",
         );
     }
@@ -129,18 +104,13 @@ mod tests {
     #[test]
     fn deserialize() {
         assert_eq!(
-            serde_json::from_str::<BlockNumber>("\"0x6789\"").unwrap(),
-            BlockNumber(0x6789),
+            serde_json::from_str::<BlockNumber>("\"latest\"").unwrap(),
+            BlockNumber::Latest,
         );
 
         assert_eq!(
-            serde_json::from_str::<BlockId>("\"latest\"").unwrap(),
-            BlockId::Latest,
-        );
-
-        assert_eq!(
-            serde_json::from_str::<BlockId>("\"0x1000000000000\"").unwrap(),
-            BlockId::Number(BlockNumber(0x1_000_000_000_000)),
+            serde_json::from_str::<BlockNumber>("\"0x1000000000000\"").unwrap(),
+            BlockNumber::Number(0x1_000_000_000_000),
         );
     }
 }

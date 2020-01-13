@@ -13,6 +13,7 @@ impl Default for JsonRpcVersion {
 }
 
 impl Serialize for JsonRpcVersion {
+    #[inline]
     fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
         serializer.serialize_str(match self {
             JsonRpcVersion::V2 => "2.0",
@@ -22,12 +23,11 @@ impl Serialize for JsonRpcVersion {
 }
 
 impl<'de> Deserialize<'de> for JsonRpcVersion {
+    #[inline]
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        String::deserialize(deserializer).and_then(|version| {
-            Ok(match &*version {
-                "2.0" => JsonRpcVersion::V2,
-                _ => JsonRpcVersion::Other(version),
-            })
+        String::deserialize(deserializer).map(|version| match &*version {
+            "2.0" => JsonRpcVersion::V2,
+            _ => JsonRpcVersion::Other(version),
         })
     }
 }
