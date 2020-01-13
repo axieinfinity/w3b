@@ -15,9 +15,9 @@ pub fn serialize_exact<S: Serializer>(bytes: &[u8], serializer: S) -> Result<S::
 }
 
 pub enum HexVisitor<'a> {
-    Bytes(&'a mut Option<Vec<u8>>),
     Expanded(&'a mut [u8]),
     Exact(&'a mut [u8]),
+    Unbounded(&'a mut Option<Vec<u8>>),
 }
 
 impl<'a, 'de> Visitor<'de> for HexVisitor<'a> {
@@ -32,33 +32,26 @@ impl<'a, 'de> Visitor<'de> for HexVisitor<'a> {
         match self {
             Expanded(bytes) => write!(formatter, " with a length of at most {}", bytes.len() << 1),
             Exact(bytes) => write!(formatter, " with an exact length of {}", bytes.len() << 1),
-            Bytes(_) => Ok(()),
+            Unbounded(_) => write!(formatter, " with an even length"),
         }
     }
 
     fn visit_str<E: de::Error>(mut self, v: &str) -> Result<Self::Value, E> {
+        use HexError::*;
         use HexVisitor::*;
 
         match &mut self {
             Expanded(bytes) => convert::write_expanded_into(v, *bytes),
             Exact(bytes) => convert::write_exact_into(v, *bytes),
-            Bytes(maybe_bytes) => convert::write_exact(v).map(|bytes| **maybe_bytes = Some(bytes)),
+            Unbounded(maybe_bytes) => {
+                convert::write_exact(v).map(|bytes| **maybe_bytes = Some(bytes))
+            }
         }
         .map_err(|error| match error {
-            HexError::IncorrectLen { len, .. } | HexError::LenTooLong { len, .. } => {
-                E::invalid_length(len, &self)
-            }
-
+            IncorrectLen { len, .. } | LenTooLong { len, .. } => E::invalid_length(len, &self),
             _ => E::custom(error),
         })
     }
-}
-
-#[inline]
-pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Vec<u8>, D::Error> {
-    let mut maybe_bytes = None;
-    deserializer.deserialize_str(HexVisitor::Bytes(&mut maybe_bytes))?;
-    Ok(maybe_bytes.unwrap())
 }
 
 #[inline]
@@ -75,4 +68,13 @@ pub fn deserialize_exact<'de, D: Deserializer<'de>>(
     deserializer: D,
 ) -> Result<(), D::Error> {
     deserializer.deserialize_str(HexVisitor::Exact(bytes))
+}
+
+#[inline]
+pub fn deserialize_unbounded<'de, D: Deserializer<'de>>(
+    deserializer: D,
+) -> Result<Vec<u8>, D::Error> {
+    let mut maybe_bytes = None;
+    deserializer.deserialize_str(HexVisitor::Unbounded(&mut maybe_bytes))?;
+    Ok(maybe_bytes.unwrap())
 }

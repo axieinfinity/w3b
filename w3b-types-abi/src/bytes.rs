@@ -68,7 +68,7 @@ impl Serialize for Bytes {
 impl<'de> Deserialize<'de> for Bytes {
     #[inline]
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
-        hex::deserialize(deserializer).map(Self)
+        hex::deserialize_unbounded(deserializer).map(Self)
     }
 }
 
