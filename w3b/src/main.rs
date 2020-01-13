@@ -1,14 +1,18 @@
 use num_bigint::BigUint;
 use w3b_types::{Address, BlockNumber, Bytes32, Filter, FilterBlocks, Topic};
 
+mod api;
 mod error;
 mod json_rpc;
+mod namespace;
 mod provider;
 pub mod providers;
 mod web3;
 
+pub use api::*;
 pub use error::*;
 pub use json_rpc::*;
+pub use namespace::*;
 pub use provider::*;
 pub use web3::*;
 
@@ -19,12 +23,13 @@ async fn main() -> Result<(), Error> {
     let provider = HttpProvider::new(env!("JSON_RPC_URI").to_owned());
     let web3 = Web3::new(provider);
 
-    let block_number = web3.eth_block_number().await?;
+    let block_number = web3.eth().block_number().await?;
 
     println!("{:?}", block_number);
 
     let nonce: u64 = web3
-        .eth_transaction_count(
+        .eth()
+        .transaction_count(
             // vitalik.eth
             Address::from_hex("0xd8da6bf26964af9d7eed9e03e53415d37aa96045").unwrap(),
             Some(block_number.into()),
@@ -35,7 +40,8 @@ async fn main() -> Result<(), Error> {
     println!("{}", nonce);
 
     let balance: BigUint = web3
-        .eth_balance(
+        .eth()
+        .balance(
             // vitalik.eth
             Address::from_hex("0xd8da6bf26964af9d7eed9e03e53415d37aa96045").unwrap(),
             Some(BlockNumber::Latest),
@@ -46,7 +52,8 @@ async fn main() -> Result<(), Error> {
     println!("{}", balance);
 
     let logs = web3
-        .eth_logs(Filter {
+        .eth()
+        .logs(Filter {
             blocks: FilterBlocks::Range {
                 from_block: Some(9258817_u64.into()),
                 to_block: Some(9258826_u64.into()),

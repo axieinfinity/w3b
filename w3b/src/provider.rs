@@ -2,7 +2,7 @@ use std::future::Future;
 
 use super::{error::Error, json_rpc::Request};
 
-pub trait Provider {
+pub trait Provider: Clone {
     type Response: Future<Output = Result<serde_json::Value, Error>>;
 
     fn send(&self, request: Request) -> Self::Response;

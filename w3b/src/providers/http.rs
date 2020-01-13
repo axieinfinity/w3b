@@ -4,6 +4,7 @@ use reqwest::Client;
 
 use crate::{error::Error, json_rpc::Request, provider::Provider};
 
+#[derive(Clone)]
 pub struct HttpProvider {
     client: Client,
     uri: String,

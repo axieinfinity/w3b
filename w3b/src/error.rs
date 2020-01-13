@@ -1,7 +1,7 @@
 use std::{error::Error as StdError, fmt};
 
 pub enum Error {
-    Decoder(serde_json::Error),
+    Codec(serde_json::Error),
     Provider(Box<dyn StdError>),
 }
 
@@ -9,7 +9,7 @@ impl fmt::Debug for Error {
     #[inline]
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Error::Decoder(error) => error.fmt(f),
+            Error::Codec(error) => error.fmt(f),
             Error::Provider(error) => error.fmt(f),
         }
     }
@@ -27,7 +27,7 @@ impl StdError for Error {}
 impl From<serde_json::Error> for Error {
     #[inline]
     fn from(error: serde_json::Error) -> Self {
-        Error::Decoder(error)
+        Error::Codec(error)
     }
 }
 
