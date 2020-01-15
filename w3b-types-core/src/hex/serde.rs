@@ -41,7 +41,7 @@ impl<'a, 'de> Visitor<'de> for HexVisitor<'a> {
         use HexVisitor::*;
 
         match &mut self {
-            Expanded(bytes) => convert::write_expanded_into(v, *bytes),
+            Expanded(bytes) => convert::write_left_expanded_into(v, *bytes),
             Exact(bytes) => convert::write_exact_into(v, *bytes),
             Unbounded(maybe_bytes) => {
                 convert::write_exact(v).map(|bytes| **maybe_bytes = Some(bytes))

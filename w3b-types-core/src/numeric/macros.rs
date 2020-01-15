@@ -81,7 +81,7 @@ macro_rules! impl_num {
             #[inline]
             pub fn from_hex(hex: impl AsRef<str>) -> Result<Self, $crate::hex::HexError> {
                 let mut repr = [0; Self::NUM_BYTES];
-                $crate::hex::write_expanded_into(hex.as_ref(), &mut repr)?;
+                $crate::hex::write_left_expanded_into(hex.as_ref(), &mut repr)?;
                 Ok(Self(repr))
             }
 

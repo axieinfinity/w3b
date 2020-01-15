@@ -5,6 +5,7 @@ pub enum HexError {
     MissingPrefix,
     NoDigits,
     InvalidChar { char: char, index: usize },
+    InvalidOddLen { len: usize },
     IncorrectLen { len: usize, expected: usize },
     LenTooLong { len: usize, max: usize },
 }
@@ -22,6 +23,10 @@ impl fmt::Debug for HexError {
                 "invalid hexadecimal character {} at index {}",
                 char, index
             ),
+
+            InvalidOddLen { len } => {
+                write!(f, "invalid odd length at {}, expected an even length", len)
+            }
 
             IncorrectLen { len, expected } => {
                 write!(f, "incorrect length at {}, expected {}", len, expected)
