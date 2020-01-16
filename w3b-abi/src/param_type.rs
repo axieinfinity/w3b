@@ -9,6 +9,7 @@ pub enum ParamType {
     Array(Box<ParamType>),
     FixedBytes(usize),
     FixedArray(Box<ParamType>, usize),
+    Tuple(Vec<Box<ParamType>>),
 }
 
 impl ParamType {
@@ -84,6 +85,7 @@ impl ToString for ParamType {
             Array(subtype) => format!("{}[]", subtype.to_string()),
             FixedBytes(size) => format!("bytes{}", size),
             FixedArray(subtype, size) => format!("{}[{}]", subtype.to_string(), size),
+            Tuple(_) => "tuple".to_owned(),
         }
     }
 }

@@ -27,7 +27,7 @@ macro_rules! impl_num {
                 &self,
                 serializer: S,
             ) -> Result<S::Ok, S::Error> {
-                $crate::core::hex::serialize(self.0.to_be_bytes().as_ref(), serializer)
+                $crate::w3b_types_core::hex::serialize(self.0.to_be_bytes().as_ref(), serializer)
             }
         }
 
@@ -37,7 +37,7 @@ macro_rules! impl_num {
                 deserializer: D,
             ) -> Result<Self, D::Error> {
                 let mut bytes = [0; ::std::mem::size_of::<$num>()];
-                $crate::core::hex::deserialize_expanded(&mut bytes, deserializer)?;
+                $crate::w3b_types_core::hex::deserialize_expanded(&mut bytes, deserializer)?;
                 Ok(Self($num::from_be_bytes(bytes)))
             }
         }

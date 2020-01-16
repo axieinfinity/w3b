@@ -844,6 +844,7 @@ name = "w3b-abi"
 version = "0.1.0"
 dependencies = [
  "w3b-types-abi 0.1.0",
+ "w3b-types-core 0.1.0",
 ]
 
 [[package]]

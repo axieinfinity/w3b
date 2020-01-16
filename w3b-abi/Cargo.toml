@@ -24,3 +24,4 @@ maintenance = { status = "actively-developed" }
 
 [dependencies]
 w3b-types-abi = { path = "../w3b-types-abi"}
+w3b-types-core = { path = "../w3b-types-core"}

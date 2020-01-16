@@ -1,8 +1,9 @@
 #[doc(hidden)]
 pub use serde;
+#[doc(hidden)]
+pub use w3b_types_core;
 
 pub use w3b_types_abi::*;
-pub use w3b_types_core as core;
 
 mod block;
 mod filter;

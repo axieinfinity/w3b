@@ -178,16 +178,16 @@ pub mod unprefixed {
     }
 
     #[inline]
-    pub fn read_left_padded(bytes: &[u8], len: usize) -> String {
+    pub fn read_left_padded(bytes: &[u8], max_byte_len: usize) -> String {
         let mut hex = String::new();
-        read_left_padded_into(bytes, len, &mut hex);
+        read_left_padded_into(bytes, max_byte_len, &mut hex);
         hex
     }
 
     #[inline]
-    pub fn read_right_padded(bytes: &[u8], len: usize) -> String {
+    pub fn read_right_padded(bytes: &[u8], max_byte_len: usize) -> String {
         let mut hex = String::new();
-        read_right_padded_into(bytes, len, &mut hex);
+        read_right_padded_into(bytes, max_byte_len, &mut hex);
         hex
     }
 
