@@ -7,10 +7,34 @@ fn main() -> io::Result<()> {
     let path = PathBuf::from(BASE_PATH).join(PATH);
     let mut file = File::create(path).unwrap();
 
-    writeln!(file, "use w3b_types_core::impl_num;")?;
-    writeln!(file)?;
-    writeln!(file, "pub type Int = Int256;")?;
-    writeln!(file, "pub type Uint = Uint256;")?;
+    writeln!(
+        file,
+        r#"use w3b_types_core::impl_num;
+
+macro_rules! impl_num_ext {{
+    ($num:ident; @int $($tail:tt)*) => {{
+        impl_num!($num; @int $($tail)*);
+        impl_num_ext!(@impl From<$num> for Int256);
+    }};
+
+    ($num:ident; @uint $($tail:tt)*) => {{
+        impl_num!($num; @uint $($tail)*);
+        impl_num_ext!(@impl From<$num> for Uint256);
+    }};
+
+    (@impl From<$num:ident> for $num256:ident) => {{
+        impl From<$num> for $num256 {{
+            #[inline]
+            fn from(value: $num) -> Self {{
+                Self::from_bytes(value.as_bytes()).unwrap()
+            }}
+        }}
+    }};
+}}
+
+pub type Int = Int256;
+pub type Uint = Uint256;"#,
+    )?;
 
     for size in (8..=256).step_by(8) {
         writeln!(file)?;
@@ -113,7 +137,12 @@ impl Numeric {
     }
 
     pub fn r#impl(&self, writer: &mut impl io::Write) -> io::Result<()> {
-        writeln!(writer, "impl_num! {{")?;
+        if self.1 != 256 {
+            writeln!(writer, "impl_num_ext! {{")?;
+        } else {
+            writeln!(writer, "impl_num! {{")?;
+        }
+
         writeln!(writer, "    {}{};", self.0.ty(), self.1)?;
         writeln!(writer, "    {}, size = {};", self.0.directive(), self.1 / 8)?;
 

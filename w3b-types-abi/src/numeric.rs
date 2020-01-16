@@ -1,16 +1,37 @@
 use w3b_types_core::impl_num;
 
+macro_rules! impl_num_ext {
+    ($num:ident; @int $($tail:tt)*) => {
+        impl_num!($num; @int $($tail)*);
+        impl_num_ext!(@impl From<$num> for Int256);
+    };
+
+    ($num:ident; @uint $($tail:tt)*) => {
+        impl_num!($num; @uint $($tail)*);
+        impl_num_ext!(@impl From<$num> for Uint256);
+    };
+
+    (@impl From<$num:ident> for $num256:ident) => {
+        impl From<$num> for $num256 {
+            #[inline]
+            fn from(value: $num) -> Self {
+                Self::from_bytes(value.as_bytes()).unwrap()
+            }
+        }
+    };
+}
+
 pub type Int = Int256;
 pub type Uint = Uint256;
 
-impl_num! {
+impl_num_ext! {
     Int8;
     @int, size = 1;
     @eq i8;
     @lt i16, i32, i64, u8, u16, u32, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Int16;
     @int, size = 2;
     @gt i8, u8;
@@ -18,14 +39,14 @@ impl_num! {
     @lt i32, i64, u16, u32, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Int24;
     @int, size = 3;
     @gt i8, i16, u8, u16;
     @lt i32, i64, u32, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Int32;
     @int, size = 4;
     @gt i8, i16, u8, u16;
@@ -33,28 +54,28 @@ impl_num! {
     @lt i64, u32, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Int40;
     @int, size = 5;
     @gt i8, i16, i32, u8, u16, u32;
     @lt i64, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Int48;
     @int, size = 6;
     @gt i8, i16, i32, u8, u16, u32;
     @lt i64, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Int56;
     @int, size = 7;
     @gt i8, i16, i32, u8, u16, u32;
     @lt i64, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Int64;
     @int, size = 8;
     @gt i8, i16, i32, u8, u16, u32;
@@ -62,139 +83,139 @@ impl_num! {
     @lt u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Int72;
     @int, size = 9;
     @gt i8, i16, i32, i64, u8, u16, u32, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Int80;
     @int, size = 10;
     @gt i8, i16, i32, i64, u8, u16, u32, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Int88;
     @int, size = 11;
     @gt i8, i16, i32, i64, u8, u16, u32, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Int96;
     @int, size = 12;
     @gt i8, i16, i32, i64, u8, u16, u32, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Int104;
     @int, size = 13;
     @gt i8, i16, i32, i64, u8, u16, u32, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Int112;
     @int, size = 14;
     @gt i8, i16, i32, i64, u8, u16, u32, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Int120;
     @int, size = 15;
     @gt i8, i16, i32, i64, u8, u16, u32, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Int128;
     @int, size = 16;
     @gt i8, i16, i32, i64, u8, u16, u32, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Int136;
     @int, size = 17;
     @gt i8, i16, i32, i64, u8, u16, u32, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Int144;
     @int, size = 18;
     @gt i8, i16, i32, i64, u8, u16, u32, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Int152;
     @int, size = 19;
     @gt i8, i16, i32, i64, u8, u16, u32, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Int160;
     @int, size = 20;
     @gt i8, i16, i32, i64, u8, u16, u32, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Int168;
     @int, size = 21;
     @gt i8, i16, i32, i64, u8, u16, u32, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Int176;
     @int, size = 22;
     @gt i8, i16, i32, i64, u8, u16, u32, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Int184;
     @int, size = 23;
     @gt i8, i16, i32, i64, u8, u16, u32, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Int192;
     @int, size = 24;
     @gt i8, i16, i32, i64, u8, u16, u32, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Int200;
     @int, size = 25;
     @gt i8, i16, i32, i64, u8, u16, u32, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Int208;
     @int, size = 26;
     @gt i8, i16, i32, i64, u8, u16, u32, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Int216;
     @int, size = 27;
     @gt i8, i16, i32, i64, u8, u16, u32, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Int224;
     @int, size = 28;
     @gt i8, i16, i32, i64, u8, u16, u32, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Int232;
     @int, size = 29;
     @gt i8, i16, i32, i64, u8, u16, u32, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Int240;
     @int, size = 30;
     @gt i8, i16, i32, i64, u8, u16, u32, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Int248;
     @int, size = 31;
     @gt i8, i16, i32, i64, u8, u16, u32, u64;
@@ -206,14 +227,14 @@ impl_num! {
     @gt i8, i16, i32, i64, u8, u16, u32, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Uint8;
     @uint, size = 1;
     @eq u8;
     @lt i8, i16, i32, i64, u16, u32, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Uint16;
     @uint, size = 2;
     @gt u8;
@@ -221,14 +242,14 @@ impl_num! {
     @lt i8, i16, i32, i64, u32, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Uint24;
     @uint, size = 3;
     @gt u8, u16;
     @lt i8, i16, i32, i64, u32, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Uint32;
     @uint, size = 4;
     @gt u8, u16;
@@ -236,28 +257,28 @@ impl_num! {
     @lt i8, i16, i32, i64, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Uint40;
     @uint, size = 5;
     @gt u8, u16, u32;
     @lt i8, i16, i32, i64, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Uint48;
     @uint, size = 6;
     @gt u8, u16, u32;
     @lt i8, i16, i32, i64, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Uint56;
     @uint, size = 7;
     @gt u8, u16, u32;
     @lt i8, i16, i32, i64, u64;
 }
 
-impl_num! {
+impl_num_ext! {
     Uint64;
     @uint, size = 8;
     @gt u8, u16, u32;
@@ -265,161 +286,161 @@ impl_num! {
     @lt i8, i16, i32, i64;
 }
 
-impl_num! {
+impl_num_ext! {
     Uint72;
     @uint, size = 9;
     @gt u8, u16, u32, u64;
     @lt i8, i16, i32, i64;
 }
 
-impl_num! {
+impl_num_ext! {
     Uint80;
     @uint, size = 10;
     @gt u8, u16, u32, u64;
     @lt i8, i16, i32, i64;
 }
 
-impl_num! {
+impl_num_ext! {
     Uint88;
     @uint, size = 11;
     @gt u8, u16, u32, u64;
     @lt i8, i16, i32, i64;
 }
 
-impl_num! {
+impl_num_ext! {
     Uint96;
     @uint, size = 12;
     @gt u8, u16, u32, u64;
     @lt i8, i16, i32, i64;
 }
 
-impl_num! {
+impl_num_ext! {
     Uint104;
     @uint, size = 13;
     @gt u8, u16, u32, u64;
     @lt i8, i16, i32, i64;
 }
 
-impl_num! {
+impl_num_ext! {
     Uint112;
     @uint, size = 14;
     @gt u8, u16, u32, u64;
     @lt i8, i16, i32, i64;
 }
 
-impl_num! {
+impl_num_ext! {
     Uint120;
     @uint, size = 15;
     @gt u8, u16, u32, u64;
     @lt i8, i16, i32, i64;
 }
 
-impl_num! {
+impl_num_ext! {
     Uint128;
     @uint, size = 16;
     @gt u8, u16, u32, u64;
     @lt i8, i16, i32, i64;
 }
 
-impl_num! {
+impl_num_ext! {
     Uint136;
     @uint, size = 17;
     @gt u8, u16, u32, u64;
     @lt i8, i16, i32, i64;
 }
 
-impl_num! {
+impl_num_ext! {
     Uint144;
     @uint, size = 18;
     @gt u8, u16, u32, u64;
     @lt i8, i16, i32, i64;
 }
 
-impl_num! {
+impl_num_ext! {
     Uint152;
     @uint, size = 19;
     @gt u8, u16, u32, u64;
     @lt i8, i16, i32, i64;
 }
 
-impl_num! {
+impl_num_ext! {
     Uint160;
     @uint, size = 20;
     @gt u8, u16, u32, u64;
     @lt i8, i16, i32, i64;
 }
 
-impl_num! {
+impl_num_ext! {
     Uint168;
     @uint, size = 21;
     @gt u8, u16, u32, u64;
     @lt i8, i16, i32, i64;
 }
 
-impl_num! {
+impl_num_ext! {
     Uint176;
     @uint, size = 22;
     @gt u8, u16, u32, u64;
     @lt i8, i16, i32, i64;
 }
 
-impl_num! {
+impl_num_ext! {
     Uint184;
     @uint, size = 23;
     @gt u8, u16, u32, u64;
     @lt i8, i16, i32, i64;
 }
 
-impl_num! {
+impl_num_ext! {
     Uint192;
     @uint, size = 24;
     @gt u8, u16, u32, u64;
     @lt i8, i16, i32, i64;
 }
 
-impl_num! {
+impl_num_ext! {
     Uint200;
     @uint, size = 25;
     @gt u8, u16, u32, u64;
     @lt i8, i16, i32, i64;
 }
 
-impl_num! {
+impl_num_ext! {
     Uint208;
     @uint, size = 26;
     @gt u8, u16, u32, u64;
     @lt i8, i16, i32, i64;
 }
 
-impl_num! {
+impl_num_ext! {
     Uint216;
     @uint, size = 27;
     @gt u8, u16, u32, u64;
     @lt i8, i16, i32, i64;
 }
 
-impl_num! {
+impl_num_ext! {
     Uint224;
     @uint, size = 28;
     @gt u8, u16, u32, u64;
     @lt i8, i16, i32, i64;
 }
 
-impl_num! {
+impl_num_ext! {
     Uint232;
     @uint, size = 29;
     @gt u8, u16, u32, u64;
     @lt i8, i16, i32, i64;
 }
 
-impl_num! {
+impl_num_ext! {
     Uint240;
     @uint, size = 30;
     @gt u8, u16, u32, u64;
     @lt i8, i16, i32, i64;
 }
 
-impl_num! {
+impl_num_ext! {
     Uint248;
     @uint, size = 31;
     @gt u8, u16, u32, u64;
