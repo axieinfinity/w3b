@@ -72,37 +72,50 @@ impl<'de> Deserialize<'de> for Bytes {
     }
 }
 
+macro_rules! impl_bytes_ext {
+    ($bytes:ident; $($tail:tt)*) => {
+        impl_bytes!($bytes; $($tail)*);
+
+        impl From<$bytes> for Bytes {
+            #[inline]
+            fn from(value: $bytes) -> Self {
+                Self::from_bytes(value.as_bytes())
+            }
+        }
+    };
+}
+
 pub type Byte = Bytes1;
 
-impl_bytes!(Bytes1; size = 1);
-impl_bytes!(Bytes2; size = 2);
-impl_bytes!(Bytes3; size = 3);
-impl_bytes!(Bytes4; size = 4);
-impl_bytes!(Bytes5; size = 5);
-impl_bytes!(Bytes6; size = 6);
-impl_bytes!(Bytes7; size = 7);
-impl_bytes!(Bytes8; size = 8);
-impl_bytes!(Bytes9; size = 9);
-impl_bytes!(Bytes10; size = 10);
-impl_bytes!(Bytes11; size = 11);
-impl_bytes!(Bytes12; size = 12);
-impl_bytes!(Bytes13; size = 13);
-impl_bytes!(Bytes14; size = 14);
-impl_bytes!(Bytes15; size = 15);
-impl_bytes!(Bytes16; size = 16);
-impl_bytes!(Bytes17; size = 17);
-impl_bytes!(Bytes18; size = 18);
-impl_bytes!(Bytes19; size = 19);
-impl_bytes!(Bytes20; size = 20);
-impl_bytes!(Bytes21; size = 21);
-impl_bytes!(Bytes22; size = 22);
-impl_bytes!(Bytes23; size = 23);
-impl_bytes!(Bytes24; size = 24);
-impl_bytes!(Bytes25; size = 25);
-impl_bytes!(Bytes26; size = 26);
-impl_bytes!(Bytes27; size = 27);
-impl_bytes!(Bytes28; size = 28);
-impl_bytes!(Bytes29; size = 29);
-impl_bytes!(Bytes30; size = 30);
-impl_bytes!(Bytes31; size = 31);
-impl_bytes!(Bytes32; size = 32);
+impl_bytes_ext!(Bytes1; size = 1);
+impl_bytes_ext!(Bytes2; size = 2);
+impl_bytes_ext!(Bytes3; size = 3);
+impl_bytes_ext!(Bytes4; size = 4);
+impl_bytes_ext!(Bytes5; size = 5);
+impl_bytes_ext!(Bytes6; size = 6);
+impl_bytes_ext!(Bytes7; size = 7);
+impl_bytes_ext!(Bytes8; size = 8);
+impl_bytes_ext!(Bytes9; size = 9);
+impl_bytes_ext!(Bytes10; size = 10);
+impl_bytes_ext!(Bytes11; size = 11);
+impl_bytes_ext!(Bytes12; size = 12);
+impl_bytes_ext!(Bytes13; size = 13);
+impl_bytes_ext!(Bytes14; size = 14);
+impl_bytes_ext!(Bytes15; size = 15);
+impl_bytes_ext!(Bytes16; size = 16);
+impl_bytes_ext!(Bytes17; size = 17);
+impl_bytes_ext!(Bytes18; size = 18);
+impl_bytes_ext!(Bytes19; size = 19);
+impl_bytes_ext!(Bytes20; size = 20);
+impl_bytes_ext!(Bytes21; size = 21);
+impl_bytes_ext!(Bytes22; size = 22);
+impl_bytes_ext!(Bytes23; size = 23);
+impl_bytes_ext!(Bytes24; size = 24);
+impl_bytes_ext!(Bytes25; size = 25);
+impl_bytes_ext!(Bytes26; size = 26);
+impl_bytes_ext!(Bytes27; size = 27);
+impl_bytes_ext!(Bytes28; size = 28);
+impl_bytes_ext!(Bytes29; size = 29);
+impl_bytes_ext!(Bytes30; size = 30);
+impl_bytes_ext!(Bytes31; size = 31);
+impl_bytes_ext!(Bytes32; size = 32);
