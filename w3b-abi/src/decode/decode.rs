@@ -1,5 +1,3 @@
-use std::{error::Error, fmt};
-
 use w3b_types_abi::{Address, Bytes, Int256, Uint256};
 use w3b_types_core::{
     hex as hex_general,
@@ -8,55 +6,7 @@ use w3b_types_core::{
 
 use crate::{param_type::ParamType, token::Token};
 
-#[derive(PartialEq)]
-pub enum DecodeError {
-    Hex {
-        inner: HexError,
-    },
-    UnexpectedChar {
-        char: char,
-        index: usize,
-        expected: Vec<char>,
-    },
-    InvalidUtf8 {
-        valid_up_to: usize,
-        invalid_size: Option<usize>,
-    },
-}
-
-impl fmt::Debug for DecodeError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            DecodeError::UnexpectedChar {
-                char,
-                index,
-                expected,
-            } => write!(
-                f,
-                "unexpected character {} at index {}, expected {:?}",
-                char, index, expected,
-            ),
-
-            _ => panic!(),
-        }
-    }
-}
-
-impl fmt::Display for DecodeError {
-    #[inline]
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        <Self as fmt::Debug>::fmt(self, f)
-    }
-}
-
-impl Error for DecodeError {}
-
-impl From<HexError> for DecodeError {
-    #[inline]
-    fn from(inner: HexError) -> Self {
-        DecodeError::Hex { inner }
-    }
-}
+use super::error::DecodeError;
 
 #[inline]
 pub fn decode(input: &str, types: &[ParamType]) -> Result<Vec<Token>, DecodeError> {
