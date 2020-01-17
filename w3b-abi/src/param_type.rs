@@ -69,6 +69,14 @@ impl ParamType {
             _ => return Err(format!("invalid parameter type {}", ty)),
         })
     }
+
+    pub fn is_dynamic(&self) -> bool {
+        match self {
+            ParamType::String | ParamType::Bytes | ParamType::Array(_) => true,
+            ParamType::FixedArray(subtype, _) => subtype.is_dynamic(),
+            _ => false,
+        }
+    }
 }
 
 impl ToString for ParamType {

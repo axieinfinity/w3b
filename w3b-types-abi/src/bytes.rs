@@ -27,6 +27,11 @@ impl Bytes {
     }
 
     #[inline]
+    pub fn from_hex_unprefixed(hex: impl AsRef<str>) -> Result<Self, HexError> {
+        hex::unprefixed::write_exact(hex.as_ref()).map(Self)
+    }
+
+    #[inline]
     pub fn as_bytes(&self) -> &[u8] {
         self.0.as_ref()
     }
@@ -34,6 +39,11 @@ impl Bytes {
     #[inline]
     pub fn to_hex(&self) -> String {
         hex::read_exact(self.as_bytes())
+    }
+
+    #[inline]
+    pub fn to_hex_unprefixed(&self) -> String {
+        hex::unprefixed::read_exact(self.as_bytes())
     }
 
     #[inline]

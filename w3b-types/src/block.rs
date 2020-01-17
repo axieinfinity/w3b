@@ -69,10 +69,10 @@ impl<'de> Deserialize<'de> for BlockNumber {
                     "latest" => BlockNumber::Latest,
                     "pending" => BlockNumber::Pending,
                     _ => {
-                        let mut bytes = [0; std::mem::size_of::<u64>()];
-                        let visitor = HexVisitor::Expanded(&mut bytes);
+                        let mut repr = [0; std::mem::size_of::<u64>()];
+                        let visitor = HexVisitor::Expanded(&mut repr);
                         visitor.visit_str(v)?;
-                        BlockNumber::Number(u64::from_be_bytes(bytes))
+                        BlockNumber::Number(u64::from_be_bytes(repr))
                     }
                 })
             }

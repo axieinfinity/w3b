@@ -35,6 +35,15 @@ macro_rules! impl_bytes {
             }
 
             #[inline]
+            pub fn from_hex_unprefixed(
+                hex: impl AsRef<str>,
+            ) -> Result<Self, $crate::hex::HexError> {
+                let mut repr = [0; Self::NUM_BYTES];
+                $crate::hex::unprefixed::write_exact_into(hex.as_ref(), &mut repr)?;
+                Ok(Self(repr))
+            }
+
+            #[inline]
             pub fn as_repr(&self) -> &[u8; Self::NUM_BYTES] {
                 &self.0
             }
@@ -47,6 +56,11 @@ macro_rules! impl_bytes {
             #[inline]
             pub fn to_hex(&self) -> String {
                 $crate::hex::read_exact(self.as_bytes())
+            }
+
+            #[inline]
+            pub fn to_hex_unprefixed(&self) -> String {
+                $crate::hex::unprefixed::read_exact(self.as_bytes())
             }
         }
 

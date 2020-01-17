@@ -1,6 +1,22 @@
 use super::error::HexError;
 
-const HEX_CHARS: &'static [u8] = b"0123456789abcdef";
+pub const HEX_CHARS: &'static [u8] = b"0123456789abcdef";
+
+#[inline]
+pub fn strip_prefix(hex: &str) -> Result<&str, HexError> {
+    if hex.starts_with("0x") {
+        Ok(&hex[2..])
+    } else {
+        Err(HexError::MissingPrefix)
+    }
+}
+
+#[inline]
+pub fn pad_into(byte_len: usize, hex: &mut String) {
+    for _ in 0..byte_len {
+        hex.push_str("00");
+    }
+}
 
 /// ```rust
 /// # use w3b_types_core::hex::read;
@@ -74,14 +90,7 @@ pub fn read_exact(bytes: &[u8]) -> String {
 #[inline]
 pub fn write_exact(hex: &str) -> Result<Vec<u8>, HexError> {
     let hex = strip_prefix(hex)?;
-
-    if hex.len() & 1 == 0 {
-        let mut bytes = vec![0; hex.len() >> 1];
-        unprefixed::write_exact_into(hex, bytes.as_mut_slice()).map_err(shift_indices)?;
-        Ok(bytes)
-    } else {
-        Err(HexError::InvalidOddLen { len: hex.len() + 2 })
-    }
+    unprefixed::write_exact(hex).map_err(shift_indices_by_2)
 }
 
 /// ```rust
@@ -101,7 +110,7 @@ pub fn write_left_padded(hex: &str, max_byte_len: usize) -> Result<Vec<u8>, HexE
     let mut bytes = vec![0; max_byte_len];
 
     unprefixed::write_left_padded_into(hex, max_byte_len, bytes.as_mut_slice())
-        .map_err(shift_indices)?;
+        .map_err(shift_indices_by_2)?;
 
     Ok(bytes)
 }
@@ -113,13 +122,13 @@ pub fn write_left_padded_into(
     bytes: &mut [u8],
 ) -> Result<(), HexError> {
     let hex = strip_prefix(hex)?;
-    unprefixed::write_left_padded_into(hex, max_byte_len, bytes).map_err(shift_indices)
+    unprefixed::write_left_padded_into(hex, max_byte_len, bytes).map_err(shift_indices_by_2)
 }
 
 #[inline]
 pub fn write_left_expanded_into(hex: &str, bytes: &mut [u8]) -> Result<(), HexError> {
     let hex = strip_prefix(hex)?;
-    unprefixed::write_left_expanded_into(hex, bytes).map_err(shift_indices)
+    unprefixed::write_left_expanded_into(hex, bytes).map_err(shift_indices_by_2)
 }
 
 /// ```rust
@@ -129,46 +138,43 @@ pub fn write_left_expanded_into(hex: &str, bytes: &mut [u8]) -> Result<(), HexEr
 #[inline]
 pub fn write_exact_into(hex: &str, bytes: &mut [u8]) -> Result<(), HexError> {
     let hex = strip_prefix(hex)?;
-    unprefixed::write_exact_into(hex, bytes).map_err(shift_indices)
+    unprefixed::write_exact_into(hex, bytes).map_err(shift_indices_by_2)
 }
 
-#[inline]
-fn strip_prefix(hex: &str) -> Result<&str, HexError> {
-    if hex.starts_with("0x") {
-        Ok(&hex[2..])
-    } else {
-        Err(HexError::MissingPrefix)
-    }
-}
-
-fn shift_indices(error: HexError) -> HexError {
+pub fn shift_indices(error: HexError, shift: usize) -> HexError {
     use HexError::*;
 
     match error {
         InvalidChar { char, index } => InvalidChar {
             char,
-            index: index + 2,
+            index: index + shift,
         },
 
-        InvalidOddLen { len } => InvalidOddLen { len: len + 2 },
+        InvalidOddLen { len } => InvalidOddLen { len: len + shift },
 
         IncorrectLen { len, expected } => IncorrectLen {
-            len: len + 2,
-            expected: expected + 2,
+            len: len + shift,
+            expected: expected + shift,
         },
 
         LenTooLong { len, max } => LenTooLong {
-            len: len + 2,
-            max: max + 2,
+            len: len + shift,
+            max: max + shift,
         },
 
         _ => error,
     }
 }
 
+#[inline]
+pub fn shift_indices_by_2(error: HexError) -> HexError {
+    shift_indices(error, 2)
+}
+
 pub mod unprefixed {
-    use super::HEX_CHARS;
     use crate::hex::HexError;
+
+    use super::{pad_into, HEX_CHARS};
 
     #[inline]
     pub fn read(bytes: &[u8]) -> String {
@@ -242,10 +248,13 @@ pub mod unprefixed {
         }
     }
 
-    #[inline]
-    fn pad_into(byte_len: usize, hex: &mut String) {
-        for _ in 0..byte_len {
-            hex.push_str("00");
+    pub fn write_exact(hex: &str) -> Result<Vec<u8>, HexError> {
+        if hex.len() & 1 == 0 {
+            let mut bytes = vec![0; hex.len() >> 1];
+            write_exact_into(hex, bytes.as_mut_slice())?;
+            Ok(bytes)
+        } else {
+            Err(HexError::InvalidOddLen { len: hex.len() })
         }
     }
 

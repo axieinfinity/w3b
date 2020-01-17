@@ -1,14 +1,15 @@
+use w3b_types_core::hex::{self as hex_general, unprefixed as hex};
+
 use crate::token::Token;
 
-const HEX_CHARS: &'static [u8] = b"0123456789abcdef";
-
+#[inline]
 pub fn encode(tokens: &[Token]) -> String {
     let mut out = String::from("0x");
-    encode_into(tokens, &mut out);
+    encode_tokens_into(tokens, &mut out);
     out
 }
 
-pub(super) fn encode_into(tokens: &[Token], out: &mut String) {
+fn encode_tokens_into(tokens: &[Token], out: &mut String) {
     let previous_len = out.len();
     let mut dynamic_checkpoints = vec![0; tokens.len()];
 
@@ -17,7 +18,7 @@ pub(super) fn encode_into(tokens: &[Token], out: &mut String) {
             out.push_str(&"00".repeat(32));
             dynamic_checkpoints[index] = out.len();
         } else {
-            token.encode_into(out);
+            encode_token_into(token, out);
         }
     }
 
@@ -30,15 +31,56 @@ pub(super) fn encode_into(tokens: &[Token], out: &mut String) {
                 index -= 1;
 
                 unsafe {
-                    out.as_bytes_mut()[index] = HEX_CHARS[offset & 0xf];
+                    out.as_bytes_mut()[index] = hex_general::HEX_CHARS[offset & 0xf];
                 }
 
                 offset >>= 4;
             }
 
-            token.encode_into(out);
+            encode_token_into(token, out);
         }
     }
+}
+
+fn encode_token_into(token: &Token, out: &mut String) {
+    use Token::*;
+
+    match token {
+        Int(int) => hex::read_exact_into(int.as_bytes(), out),
+        Uint(uint) => hex::read_exact_into(uint.as_bytes(), out),
+        Bool(bool) => hex::read_left_padded_into(&[*bool as u8], 32, out),
+        Address(address) => hex::read_left_padded_into(address.as_bytes(), 32, out),
+
+        FixedBytes(bytes) => encode_bytes_into(bytes.as_bytes(), out),
+
+        String(string) => encode_len_and_bytes_into(string.as_bytes(), out),
+        Bytes(bytes) => encode_len_and_bytes_into(bytes.as_bytes(), out),
+
+        Array(tokens) => {
+            encode_usize_into(tokens.len(), out);
+            encode_tokens_into(tokens.as_slice(), out);
+        }
+
+        FixedArray(tokens) => encode_tokens_into(tokens.as_slice(), out),
+        Tuple(tokens) => encode_tokens_into(tokens.as_slice(), out),
+    }
+}
+
+#[inline]
+fn encode_usize_into(value: usize, out: &mut String) {
+    hex::read_left_padded_into(value.to_be_bytes().as_ref(), 32, out);
+}
+
+#[inline]
+fn encode_bytes_into(bytes: &[u8], out: &mut String) {
+    let max_byte_len = (bytes.len() + 31) >> 5 << 5;
+    hex::read_right_padded_into(bytes, max_byte_len, out)
+}
+
+#[inline]
+fn encode_len_and_bytes_into(bytes: &[u8], out: &mut String) {
+    encode_usize_into(bytes.len(), out);
+    encode_bytes_into(bytes, out)
 }
 
 #[cfg(test)]

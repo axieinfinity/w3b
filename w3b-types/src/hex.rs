@@ -36,9 +36,9 @@ macro_rules! impl_num {
             fn deserialize<D: $crate::serde::Deserializer<'de>>(
                 deserializer: D,
             ) -> Result<Self, D::Error> {
-                let mut bytes = [0; ::std::mem::size_of::<$num>()];
-                $crate::w3b_types_core::hex::deserialize_expanded(&mut bytes, deserializer)?;
-                Ok(Self($num::from_be_bytes(bytes)))
+                let mut repr = [0; ::std::mem::size_of::<$num>()];
+                $crate::w3b_types_core::hex::deserialize_expanded(&mut repr, deserializer)?;
+                Ok(Self($num::from_be_bytes(repr)))
             }
         }
     };
