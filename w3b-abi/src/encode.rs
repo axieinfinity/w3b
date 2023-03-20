@@ -46,8 +46,8 @@ fn encode_token_into(token: &Token, out: &mut String) {
     use Token::*;
 
     match token {
-        Int(int) => hex::read_exact_into(int.as_bytes(), out),
-        Uint(uint) => hex::read_exact_into(uint.as_bytes(), out),
+        Int(int) => unsafe { hex::read_exact_into(int.as_bytes(), out) },
+        Uint(uint) => unsafe { hex::read_exact_into(uint.as_bytes(), out) },
         Bool(bool) => hex::read_left_padded_into(&[*bool as u8], 32, out),
         Address(address) => hex::read_left_padded_into(address.as_bytes(), 32, out),
 

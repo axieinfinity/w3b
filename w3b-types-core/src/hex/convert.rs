@@ -70,7 +70,7 @@ pub fn read_right_padded(bytes: &[u8], max_byte_len: usize) -> String {
 #[inline]
 pub fn read_exact(bytes: &[u8]) -> String {
     let mut hex = String::from("0x");
-    unprefixed::read_exact_into(bytes, &mut hex);
+    unsafe { unprefixed::read_exact_into(bytes, &mut hex) };
     hex
 }
 
@@ -200,7 +200,7 @@ pub mod unprefixed {
     #[inline]
     pub fn read_exact(bytes: &[u8]) -> String {
         let mut hex = String::new();
-        read_exact_into(bytes, &mut hex);
+        unsafe { read_exact_into(bytes, &mut hex) };
         hex
     }
 
@@ -218,7 +218,7 @@ pub mod unprefixed {
                 bytes = &bytes[1..];
             }
 
-            read_exact_into(bytes, hex);
+            unsafe { read_exact_into(bytes, hex) };
         } else {
             hex.push('0');
         }
@@ -228,23 +228,21 @@ pub mod unprefixed {
     pub fn read_left_padded_into(bytes: &[u8], max_byte_len: usize, hex: &mut String) {
         assert!(bytes.len() <= max_byte_len, "maximum byte length exceeded");
         pad_into(max_byte_len - bytes.len(), hex);
-        read_exact_into(bytes, hex);
+        unsafe { read_exact_into(bytes, hex) };
     }
 
     #[inline]
     pub fn read_right_padded_into(bytes: &[u8], max_byte_len: usize, hex: &mut String) {
         assert!(bytes.len() <= max_byte_len, "maximum byte length exceeded");
-        read_exact_into(bytes, hex);
+        unsafe { read_exact_into(bytes, hex) };
         pad_into(max_byte_len - bytes.len(), hex);
     }
 
     #[inline]
-    pub fn read_exact_into(bytes: &[u8], hex: &mut String) {
+    pub unsafe fn read_exact_into(bytes: &[u8], hex: &mut String) {
         for byte in bytes {
-            unsafe {
-                hex.as_mut_vec().push(HEX_CHARS[(byte >> 4) as usize]);
-                hex.as_mut_vec().push(HEX_CHARS[(byte & 0xf) as usize]);
-            }
+            hex.as_mut_vec().push(HEX_CHARS[(byte >> 4) as usize]);
+            hex.as_mut_vec().push(HEX_CHARS[(byte & 0xf) as usize]);
         }
     }
 
