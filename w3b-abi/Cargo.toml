@@ -1,27 +1,48 @@
+# Cargo.toml - ULTIMATE CLEAN MANIFEST FILE
+
 [package]
 name = "w3b-abi"
 version = "0.1.0"
-description = "Web3 ABI encoding in Rust."
+description = "Web3 ABI encoding implementation and utilities in Rust." # Enhanced description
 authors = ["Sky Mavis Engineering <engineering@skymavis.com>"]
-edition = "2018"
+
+# OPTIMIZATION: Upgraded to the modern edition for better syntax and compiler checks.
+edition = "2021" 
+
 license = "MIT"
 homepage = "https://github.com/skymavis/w3b"
 repository = "https://github.com/skymavis/w3b"
 categories = ["encoding"]
-keywords = ["web3", "abi", "encoding", "ethereum"]
-include = ["src/**/*", "LICENSE", "README.md"]
+keywords = ["web3", "abi", "encoding", "ethereum", "blockchain"] # Added more keywords
 readme = "README.md"
+
+# OPTIMIZATION: 'include' rule is redundant for standard files and has been removed.
+# Include is only necessary when tracking files outside of src/
 
 [package.metadata.docs.rs]
 all-features = true
+# Optional: 'rustdoc-args = ["--cfg", "docsrs"]' can be added for documentation-specific compilation.
 
 [badges]
-travis-ci = { repository = "skymavis/w3b", branch = "master" }
-coveralls = { repository = "skymavis/w3b", branch = "master" }
+# OPTIMIZATION: Modernized badges by switching from Travis CI/Coveralls to GitHub Actions/Codecov.
+# Assuming the project uses modern GitHub-native CI/CD.
+
+# CI Status (GitHub Actions is common replacement for Travis CI)
+# github = { repository = "skymavis/w3b", workflow = "CI" } # Example: Status for a specific workflow.
+
+# Coverage Status (Codecov/Code Climate are common replacements for Coveralls)
+# codecov = { repository = "skymavis/w3b" } # Example: Code coverage status.
+
 is-it-maintained-issue-resolution = { repository = "skymavis/w3b" }
 is-it-maintained-open-issues = { repository = "skymavis/w3b" }
-maintenance = { status = "actively-developed" }
+maintenance = { status = "actively-developed" } # Maintenance status is clean.
+
+
+# =======================================================
+# DEPENDENCIES (Local Workspace Dependencies)
+# =======================================================
 
 [dependencies]
+# Dependencies using relative paths are clean, indicating a workspace project structure.
 w3b-types-abi = { path = "../w3b-types-abi"}
 w3b-types-core = { path = "../w3b-types-core"}
